@@ -32,8 +32,10 @@ TABELAS = [  # ordem inversa das dependências (filhos antes dos pais)
 
 
 def upgrade() -> None:
-    # exec_driver_sql envia o SQL como está ao driver (sem interpretar ":" ou "%").
-    op.get_bind().exec_driver_sql(SQL.read_text(encoding="utf-8"))
+    # Executa pelo cursor do psycopg SEM parâmetros: assim ele envia o SQL como está,
+    # sem interpretar "%" (ex.: em comentários) como placeholder. O exec_driver_sql não
+    # serve: ele repassa uma tupla vazia de parâmetros e o psycopg passa a interpretar "%".
+    op.get_bind().connection.cursor().execute(SQL.read_text(encoding="utf-8"))
 
 
 def downgrade() -> None:
