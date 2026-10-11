@@ -1,0 +1,6 @@
+# Normaliza finais de linha. Importante no Windows: o Git converte CRLF<->LF
+# automaticamente e scripts .sh executados dentro de containers Linux continuam funcionando.
+* text=auto eol=lf
+*.xlsx binary
+*.png binary
+*.pdf binary

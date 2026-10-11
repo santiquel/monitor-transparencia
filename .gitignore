@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# Configurações locais e credenciais
+.env
+
+# Dados gerados pela coleta (snapshots de páginas, PDFs, screenshots)
+data/*
+!data/.gitkeep
+
+# Editores / SO
+.idea/
+.DS_Store
+Thumbs.db

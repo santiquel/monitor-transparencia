@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "charliermarsh.ruff",
+    "ms-ossdata.vscode-pgsql",
+    "ms-azuretools.vscode-docker",
+    "redhat.vscode-yaml",
+    "eamodio.gitlens"
+  ]
+}

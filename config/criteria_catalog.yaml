@@ -1,0 +1,1652 @@
+# =============================================================================
+# CATÁLOGO DE CRITÉRIOS — ARQUIVO GERADO AUTOMATICAMENTE
+# Fonte: docs/referencia/checklistPortalTransp.xlsx
+# Gerador: src/transparencia/catalog/builder.py
+# Comando: uv run transparencia catalogo gerar
+#
+# Não edite à mão: altere o gerador (decisões ficam versionadas e explicadas lá)
+# e rode o comando de novo. Revise a diferença com `git diff`.
+# =============================================================================
+versao: 2026.10.0
+fonte: checklistPortalTransp.xlsx
+pesos_classificacao:
+  essencial: 2.0
+  obrigatorio: 1.5
+  recomendado: 1.0
+categorias:
+- codigo: '1'
+  nome: Informações prioritárias
+  bloco: informacoes_prioritarias
+  matriz: comum
+- codigo: '2'
+  nome: Informações institucionais
+  bloco: transparencia_ativa
+  matriz: comum
+- codigo: '3'
+  nome: Receita
+  bloco: transparencia_ativa
+  matriz: comum
+- codigo: '4'
+  nome: Despesa
+  bloco: transparencia_ativa
+  matriz: comum
+- codigo: '5'
+  nome: Recursos humanos
+  bloco: transparencia_ativa
+  matriz: comum
+- codigo: '6'
+  nome: Diárias
+  bloco: transparencia_ativa
+  matriz: comum
+- codigo: '7'
+  nome: Licitações
+  bloco: transparencia_ativa
+  matriz: comum
+- codigo: '8'
+  nome: Contratos
+  bloco: transparencia_ativa
+  matriz: comum
+- codigo: '9'
+  nome: Administração do patrimônio público - imóveis
+  bloco: transparencia_ativa
+  matriz: comum
+- codigo: '10'
+  nome: Administração do patrimônio público - veículos
+  bloco: transparencia_ativa
+  matriz: comum
+- codigo: '11'
+  nome: Obras
+  bloco: transparencia_ativa
+  matriz: comum
+- codigo: '12'
+  nome: Planejamento e prestação de contas
+  bloco: transparencia_ativa
+  matriz: comum
+- codigo: '13'
+  nome: Emendas parlamentares
+  bloco: transparencia_ativa
+  matriz: comum
+- codigo: '14'
+  nome: Serviço de informações ao cidadão - SIC (físico)
+  bloco: transparencia_passiva
+  matriz: comum
+- codigo: '15'
+  nome: Serviço de informações ao cidadão e-SIC (eletrônico)
+  bloco: transparencia_passiva
+  matriz: comum
+- codigo: '16'
+  nome: Acessibilidade
+  bloco: transparencia_passiva
+  matriz: comum
+- codigo: '17'
+  nome: Ouvidorias
+  bloco: boas_praticas
+  matriz: comum
+- codigo: '18'
+  nome: LGPD e governo digital
+  bloco: boas_praticas
+  matriz: comum
+- codigo: '19'
+  nome: Instrumentos da gestão fiscal e do planejamento
+  bloco: especifica_executivo
+  matriz: especifica_executivo
+- codigo: '20'
+  nome: Relatórios referentes à transparência da gestão fiscal
+  bloco: especifica_executivo
+  matriz: especifica_executivo
+- codigo: '21'
+  nome: Boas práticas
+  bloco: especifica_executivo
+  matriz: especifica_executivo
+criterios:
+- codigo: '1.1'
+  categoria: '1'
+  descricao: A entidade pública possui sítio oficial e/ou portal da transparência próprio ou compartilhado
+    na internet?
+  fundamentacao: Art. 48º, II, da LC nº 101/00, e art. 8º, §2º, da LAI
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: essencial
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '1.2'
+  categoria: '1'
+  descricao: O acesso ao portal transparência está visível na capa do site?
+  fundamentacao: Art. 8º, caput da LAI
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: essencial
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '1.3'
+  categoria: '1'
+  descricao: O site contém ferramenta de pesquisa de conteúdo que permita o acesso à informação?
+  fundamentacao: Art. 8º, §3º, I, da LAI
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: essencial
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '2.1'
+  categoria: '2'
+  descricao: Competências e/ou atribuições
+  fundamentacao: Art. 8º, § 1º, I, da LAI, e art. 6º, VI, "b" da Lei nº 13.460/2017
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '2.2'
+  categoria: '2'
+  descricao: Estrutura organizacional
+  fundamentacao: Art. 8º, § 1º, I, da LAI, e art. 6º, VI, "b" da Lei nº 13.460/2017
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '2.3'
+  categoria: '2'
+  descricao: Identificação dos responsáveis pela gestão do Poder/Órgão
+  fundamentacao: Art. 8º, § 1º, I, da LAI, e art. 6º, VI, "b" da Lei nº 13.460/2017
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '2.4'
+  categoria: '2'
+  descricao: Endereços
+  fundamentacao: Art. 8º, § 1º, I, da LAI, e art. 6º, VI, "b" da Lei nº 13.460/2017
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '2.5'
+  categoria: '2'
+  descricao: Telefones
+  fundamentacao: Art. 8º, § 1º, I, da LAI, e art. 6º, VI, "b" da Lei nº 13.460/2017
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '2.6'
+  categoria: '2'
+  descricao: Horário de atendimento
+  fundamentacao: Art. 8º, § 1º, I, da LAI, e art. 6º, VI, "b" da Lei nº 13.460/2017
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '2.7'
+  categoria: '2'
+  descricao: Perguntas e respostas mais frequentes
+  fundamentacao: Art. 8º, § 1º, VI, da LAI
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '2.8'
+  categoria: '2'
+  descricao: Divulga os atos normativos próprios
+  fundamentacao: Art. 37º da CRFB; Arts. 3º, II; 6º, inciso I; 7º, incisos II, V e VI e 8º da LAI
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '2.9'
+  categoria: '2'
+  descricao: Canal de Comunicação com cidadão do tipo ‘Fale Conosco’, que permite ao interessado comunicar-se
+    com órgão por via eletrônica ou telefônica
+  fundamentacao: Art. 8º, §3º, inciso VII, da LAI
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '3.1'
+  categoria: '3'
+  descricao: Valores da receita pública arrecadada
+  fundamentacao: Arts. 48º, §1º, II e 48º-A, inciso II, da LC nº 101/00, e art. 8º, II, do Decreto nº
+    10.540/20
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: essencial
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '3.2'
+  categoria: '3'
+  descricao: Valores da receita pública prevista na LOA
+  fundamentacao: Arts. 48º, §1º, II e 48º-A, inciso II, da LC nº 101/00, e art. 8º, II, do Decreto nº
+    10.540/20
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '3.3'
+  categoria: '3'
+  descricao: Classificação orçamentária por natureza da receita (categoria econômica, origem, espécie)
+    e fonte de recursos
+  fundamentacao: Arts. 48º, §1º, II e 48º-A, inciso II, da LC nº 101/00, e art. 8º, II, do Decreto nº
+    10.540/20
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '3.4'
+  categoria: '3'
+  descricao: Ferramenta de pesquisa específica (que permite pesquisar dentro deste conjunto de informações,
+    possibilitando filtros específicos) em relação aos critérios da receita
+  fundamentacao: Art. 8º, §3º, inciso I, da LAI
+  fundamentacao_herdada: false
+  dimensao: filtro_pesquisa
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '3.5'
+  categoria: '3'
+  descricao: Gravação de relatórios em diversos formatos em relação aos critérios da receita
+  fundamentacao: Art. 8º, §3º, inciso II, da LAI
+  fundamentacao_herdada: false
+  dimensao: gravacao_relatorios
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '3.6'
+  categoria: '3'
+  descricao: Existência de informações atualizadas em relação aos critérios da receita
+  fundamentacao: Art. 8º, §3º, inciso VI, da LAI
+  fundamentacao_herdada: false
+  dimensao: atualidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '3.7'
+  categoria: '3'
+  descricao: Existência de histórico das informações em relação aos critérios da receita
+  fundamentacao: Art. 7º, II e VI e art. 8º, "caput" da LAI
+  fundamentacao_herdada: false
+  dimensao: serie_historica
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '3.8'
+  categoria: '3'
+  descricao: Transferências voluntárias recebidas, a partir da celebração de convênios/acordos, com indicação,
+    no mínimo, do total previsto dos recursos envolvidos, do valor recebido, da data da transferência,
+    do objeto e da origem dos recursos (órgão repassador/concedente)
+  fundamentacao: Art. 8º, §1º, inciso II, da LAI
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: true
+  nota: Só se aplica se houver transferências voluntárias recebidas no período.
+- codigo: '3.9'
+  categoria: '3'
+  descricao: Ferramenta de pesquisa específica (que permite pesquisar dentro deste conjunto de informações,
+    possibilitando filtros específicos) em relação aos critérios de transferências voluntárias recebidas
+  fundamentacao: Art. 8º, §3º, inciso I, da LAI
+  fundamentacao_herdada: false
+  dimensao: filtro_pesquisa
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '3.10'
+  categoria: '3'
+  descricao: Gravação de relatórios em diversos formatos em relação aos critérios de transferências voluntárias
+    recebidas
+  fundamentacao: Art. 8º, §3º, inciso II, da LAI
+  fundamentacao_herdada: false
+  dimensao: gravacao_relatorios
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '3.11'
+  categoria: '3'
+  descricao: Existência de informações atualizadas em relação aos critérios de transferências voluntárias
+    recebidas
+  fundamentacao: Art. 8º, §3º, inciso VI, da LAI
+  fundamentacao_herdada: false
+  dimensao: atualidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '3.12'
+  categoria: '3'
+  descricao: Existência de histórico das informações em relação aos critérios de transferências voluntárias
+    recebidas
+  fundamentacao: Art. 7º, II e VI e Art. 8º, "caput" da LAI
+  fundamentacao_herdada: false
+  dimensao: serie_historica
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '4.1'
+  categoria: '4'
+  descricao: Número e o valor de empenho, liquidação e pagamento
+  fundamentacao: Arts. 7º, VI e 8º, §1º, inciso III, da LAI; Arts. 48º, §1º, inciso II, e 48º-A, inciso
+    I, da LC nº 101/20; Art. 8º, inciso I, do Decreto nº 10.540/20
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: essencial
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '4.2'
+  categoria: '4'
+  descricao: Classificação orçamentária, especificando a unidade orçamentária, a função, a subfunção,
+    o programa, a ação, a natureza da despesa e a fonte dos recursos
+  fundamentacao: Arts. 7º, VI e 8º, §1º, inciso III, da LAI; Arts. 48º, §1º, inciso II, e 48º-A, inciso
+    I, da LC nº 101/20; Art. 8º, inciso I, do Decreto nº 10.540/20
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '4.3'
+  categoria: '4'
+  descricao: Pessoa física ou jurídica beneficiária do pagamento ou credor
+  fundamentacao: Arts. 7º, VI e 8º, §1º, inciso III, da LAI; Arts. 48º, §1º, inciso II, e 48º-A, inciso
+    I, da LC nº 101/20; Art. 8º, inciso I, do Decreto nº 10.540/20
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: essencial
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '4.4'
+  categoria: '4'
+  descricao: Ferramenta de pesquisa específica (que permite pesquisar dentro deste conjunto de informações,
+    possibilitando filtros específicos) em relação aos critérios da despesa
+  fundamentacao: Art. 8º, §3º, inciso I, da LAI
+  fundamentacao_herdada: false
+  dimensao: filtro_pesquisa
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '4.5'
+  categoria: '4'
+  descricao: Gravação de relatórios em diversos formatos em relação aos critérios da despesa
+  fundamentacao: Art. 8º, §3º, inciso II, da LAI
+  fundamentacao_herdada: false
+  dimensao: gravacao_relatorios
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '4.6'
+  categoria: '4'
+  descricao: Existência de informações atualizadas em relação aos critérios da despesa
+  fundamentacao: Art. 8º, §3º, inciso VI, da LAI
+  fundamentacao_herdada: false
+  dimensao: atualidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '4.7'
+  categoria: '4'
+  descricao: Existência de histórico das informações em relação aos critérios da despesa
+  fundamentacao: Arts. 7º, incisos II e VI e 8º, "caput" da LAI
+  fundamentacao_herdada: false
+  dimensao: serie_historica
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '4.8'
+  categoria: '4'
+  descricao: Transferências realizadas a partir da celebração de convênios/acordos/ajustes, com indicação,
+    no mínimo, do beneficiário, do objeto, do valor total previsto dos recursos envolvidos, do valor concedido
+    e a data do repasse.
+  fundamentacao: Art. 8º, §1º, inciso II, da LAI, e art. 8º, inciso I, "f" do Decreto nº 10.540/20
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: true
+  nota: Só se aplica se houver convênios/repasses concedidos no período.
+- codigo: '4.9'
+  categoria: '4'
+  descricao: Acordos firmados que não envolvam transferência de recursos financeiros, identificando as
+    partes, o objeto e as obrigações ajustadas
+  fundamentacao: Art. 37º, "caput", da CF, e art. 8º, § 1º, V, da LAI
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: true
+  nota: Só se aplica se houver acordos sem transferência de recursos.
+- codigo: '4.10'
+  categoria: '4'
+  descricao: Ferramenta de pesquisa específica (que permita pesquisar dentro deste conjunto de informações,
+    possibilitando filtros específicos) em relação aos critérios de transferências voluntárias
+  fundamentacao: Art. 8º, §3º, inciso I, da LAI
+  fundamentacao_herdada: false
+  dimensao: filtro_pesquisa
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '4.11'
+  categoria: '4'
+  descricao: Gravação de relatórios em diversos formatos em relação aos critérios de transferências voluntárias
+  fundamentacao: Art. 8º, §3º, inciso II, da LAI
+  fundamentacao_herdada: false
+  dimensao: gravacao_relatorios
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '4.12'
+  categoria: '4'
+  descricao: Existência de informações atualizadas em relação aos critérios de transferências voluntárias
+  fundamentacao: Art. 8º, §3º, inciso VI, da LAI
+  fundamentacao_herdada: false
+  dimensao: atualidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '4.13'
+  categoria: '4'
+  descricao: Existência de histórico das informações em relação aos critérios de transferências voluntárias
+  fundamentacao: Arts. 7º, incisos II e VI, e 8º, "caput" da LAI
+  fundamentacao_herdada: false
+  dimensao: serie_historica
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '5.1'
+  categoria: '5'
+  descricao: Relação nominal dos servidores
+  fundamentacao: Arts. 37º, "caput" (princípios da publicidade e moralidade), e 39, § 6º, da CF; Arts.
+    3º, incisos I, II, III, IV e V, e 8º da LAI
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: essencial
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '5.2'
+  categoria: '5'
+  descricao: Indicação de cargo e/ou função desempenhada por cada servidor
+  fundamentacao: Arts. 37º, "caput" (princípios da publicidade e moralidade), e 39, § 6º, da CF; Arts.
+    3º, incisos I, II, III, IV e V, e 8º da LAI
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '5.3'
+  categoria: '5'
+  descricao: Indicação da lotação de cada servidor
+  fundamentacao: Arts. 37º, "caput" (princípios da publicidade e moralidade), e 39, § 6º, da CF; Arts.
+    3º, incisos I, II, III, IV e V, e 8º da LAI
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '5.4'
+  categoria: '5'
+  descricao: Indicação das datas de admissão/exoneração/inativação
+  fundamentacao: Arts. 37º, "caput" (princípios da publicidade e moralidade), e 39, § 6º, da CF; Arts.
+    3º, incisos I, II, III, IV e V, e 8º da LAI
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '5.5'
+  categoria: '5'
+  descricao: Indicação da carga horária do cargo/função ocupada/desempenhada
+  fundamentacao: Arts. 37º, "caput" (princípios da publicidade e moralidade), e 39, § 6º, da CF; Arts.
+    3º, incisos I, II, III, IV e V, e 8º da LAI
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '5.6'
+  categoria: '5'
+  descricao: Indicação da remuneração nominal de cada servidor
+  fundamentacao: Arts. 37º, "caput" (princípios da publicidade e moralidade), e 39, § 6º, da CF; Arts.
+    3º, incisos I, II, III, IV e V, e 8º da LAI
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: essencial
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '5.7'
+  categoria: '5'
+  descricao: Tabela com o padrão remuneratório dos cargos e funções
+  fundamentacao: Arts. 37º, "caput" (princípios da publicidade e moralidade), e 39, § 6º, da CF; Arts.
+    3º, incisos I, II, III, IV e V, e 8º da LAI
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '5.8'
+  categoria: '5'
+  descricao: Existência de informações atualizadas
+  fundamentacao: Art. 8º, §3º, inciso VI, da LAI
+  fundamentacao_herdada: false
+  dimensao: atualidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '5.9'
+  categoria: '5'
+  descricao: Existência de histórico das informações
+  fundamentacao: Arts. 7º, incisos II e VI e 8º, "caput" da LAI
+  fundamentacao_herdada: false
+  dimensao: serie_historica
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '5.10'
+  categoria: '5'
+  descricao: Gravação de relatórios em diversos formatos
+  fundamentacao: Art. 8º, §3º, inciso II, da LAI
+  fundamentacao_herdada: false
+  dimensao: gravacao_relatorios
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '5.11'
+  categoria: '5'
+  descricao: Ferramenta de pesquisa específica (que permite pesquisar dentro deste conjunto de informações,
+    possibilitando filtros específicos)
+  fundamentacao: Art. 8º, §3º, inciso I, da LAI
+  fundamentacao_herdada: false
+  dimensao: filtro_pesquisa
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '5.12'
+  categoria: '5'
+  descricao: 'Íntegra dos editais de concursos e seleções públicas realizados pelo órgão para provimento
+    de cargos e empregos públicos, bem como informações sobre os demais atos, contendo: vagas efetivamente
+    preenchidas, lista de aprovados com as classificações e as nomeações, fila de espera/cadastro reserva
+    e validade.'
+  fundamentacao: Art. 3º, incisos I a III, combinado com art. 6º, inciso I, combinado com art. 7º, incisos
+    II e VI, combinado com art. 8º, caput e § 1º, inciso IV (por analogia) e § 2º da LAI
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '6.1'
+  categoria: '6'
+  descricao: Nome do beneficiário
+  fundamentacao: Art. 48º-A, I, da LC nº 101/00; Arts. 3º, incisos I, II, III, IV e V, 7º, incisos VI,
+    e 8º da LAI; Art. 37º, "caput", da CF (princípio da publicidade) e art. 8º, inciso I, "e", do Decreto
+    nº 10.540/20
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '6.2'
+  categoria: '6'
+  descricao: Cargo do beneficiário
+  fundamentacao: Art. 48º-A, I, da LC nº 101/00; Arts. 3º, incisos I, II, III, IV e V, 7º, incisos VI,
+    e 8º da LAI; Art. 37º, "caput", da CF (princípio da publicidade) e art. 8º, inciso I, "e", do Decreto
+    nº 10.540/20
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '6.3'
+  categoria: '6'
+  descricao: Número de diárias usufruídas por afastamento e o valor total recebido
+  fundamentacao: Art. 48º-A, I, da LC nº 101/00; Arts. 3º, incisos I, II, III, IV e V, 7º, incisos VI,
+    e 8º da LAI; Art. 37º, "caput", da CF (princípio da publicidade) e art. 8º, inciso I, "e", do Decreto
+    nº 10.540/20
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '6.4'
+  categoria: '6'
+  descricao: Período de afastamento
+  fundamentacao: Art. 48º-A, I, da LC nº 101/00; Arts. 3º, incisos I, II, III, IV e V, 7º, incisos VI,
+    e 8º da LAI; Art. 37º, "caput", da CF (princípio da publicidade) e art. 8º, inciso I, "e", do Decreto
+    nº 10.540/20
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '6.5'
+  categoria: '6'
+  descricao: Motivo do afastamento
+  fundamentacao: Art. 48º-A, I, da LC nº 101/00; Arts. 3º, incisos I, II, III, IV e V, 7º, incisos VI,
+    e 8º da LAI; Art. 37º, "caput", da CF (princípio da publicidade) e art. 8º, inciso I, "e", do Decreto
+    nº 10.540/20
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '6.6'
+  categoria: '6'
+  descricao: Local de destino
+  fundamentacao: Art. 48º-A, I, da LC nº 101/00; Arts. 3º, incisos I, II, III, IV e V, 7º, incisos VI,
+    e 8º da LAI; Art. 37º, "caput", da CF (princípio da publicidade) e art. 8º, inciso I, "e", do Decreto
+    nº 10.540/20
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '6.7'
+  categoria: '6'
+  descricao: Tabela ou relação que explicite os valores das diárias dentro do Estado, fora do Estado e
+    fora do país, conforme legislação local
+  fundamentacao: Art. 48º-A, I, da LC nº 101/00; Arts. 3º, incisos I, II, III, IV e V, 7º, incisos VI,
+    e 8º da LAI; Art. 37º, "caput", da CF (princípio da publicidade) e art. 8º, inciso I, "e", do Decreto
+    nº 10.540/20
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '6.8'
+  categoria: '6'
+  descricao: Existência de informações atualizadas
+  fundamentacao: Art. 8º, §3º, inciso VI, da LAI
+  fundamentacao_herdada: false
+  dimensao: atualidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '6.9'
+  categoria: '6'
+  descricao: Existência de histórico das informações
+  fundamentacao: Arts. 7º, incisos II e VI, e 8º, "caput" da LAI
+  fundamentacao_herdada: false
+  dimensao: serie_historica
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '6.10'
+  categoria: '6'
+  descricao: Ferramenta de pesquisa específica (que permita pesquisar dentro deste conjunto de informações,
+    possibilitando filtros específicos)
+  fundamentacao: Art. 8º, §3º, inciso I, da LAI
+  fundamentacao_herdada: false
+  dimensao: filtro_pesquisa
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '6.11'
+  categoria: '6'
+  descricao: Gravação de relatórios em diversos formatos
+  fundamentacao: Art. 8º, §3º, inciso II, da LAI
+  fundamentacao_herdada: false
+  dimensao: gravacao_relatorios
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '7.1'
+  categoria: '7'
+  descricao: Relação das licitações em ordem sequencial, informando o nº e a modalidade licitatória, o
+    objeto, a data, o valor estimado/homologado e a situação (aberto, em andamento, suspenso, finalizado),
+    indicando os vencedores
+  fundamentacao: Arts. 7º, inciso VI, e 8º, §1º, inciso IV, da LAI, c/c art. 25º, § 3º, da Lei nº 14.133/2021;
+    Decreto nº 7.892/2013 e art. 18º, § 4º, do Decreto nº 11.462/2023
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: essencial
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '7.2'
+  categoria: '7'
+  descricao: Íntegra dos editais, dos certames em andamento e dos encerrados, e demais documentos da fase
+    interna e externa da licitação (Termo de Referência/projeto básico ou equivalente, justificativa da
+    licitação, pareceres técnicos/jurídicos, orçamento ou formação do preço de referência da licitação,
+    anexos do edital, atas de abertura e julgamentos etc.)
+  fundamentacao: Arts. 7º, inciso VI, e 8º, §1º, inciso IV, da LAI, c/c art. 25º, § 3º, da Lei nº 14.133/2021;
+    Decreto nº 7.892/2013 e art. 18º, § 4º, do Decreto nº 11.462/2023
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '7.3'
+  categoria: '7'
+  descricao: Íntegra dos processos de dispensa de licitação
+  fundamentacao: Arts. 7º, inciso VI, e 8º, §1º, inciso IV, da LAI, c/c art. 25º, § 3º, da Lei nº 14.133/2021;
+    Decreto nº 7.892/2013 e art. 18º, § 4º, do Decreto nº 11.462/2023
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '7.4'
+  categoria: '7'
+  descricao: Íntegra dos processos de inexigibilidade de licitação
+  fundamentacao: Arts. 7º, inciso VI, e 8º, §1º, inciso IV, da LAI, c/c art. 25º, § 3º, da Lei nº 14.133/2021;
+    Decreto nº 7.892/2013 e art. 18º, § 4º, do Decreto nº 11.462/2023
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '7.5'
+  categoria: '7'
+  descricao: Íntegra das Atas de Adesão - SRP
+  fundamentacao: Arts. 7º, inciso VI, e 8º, §1º, inciso IV, da LAI, c/c art. 25º, § 3º, da Lei nº 14.133/2021;
+    Decreto nº 7.892/2013 e art. 18º, § 4º, do Decreto nº 11.462/2023
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '7.6'
+  categoria: '7'
+  descricao: Relação das licitações fracassadas e/ou desertas
+  fundamentacao: Arts. 7º, inciso VI, e 8º, §1º, inciso IV, da LAI, c/c art. 25º, § 3º, da Lei nº 14.133/2021;
+    Decreto nº 7.892/2013 e art. 18º, § 4º, do Decreto nº 11.462/2023
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '7.7'
+  categoria: '7'
+  descricao: Ferramenta de pesquisa específica (que permita pesquisar dentro deste conjunto de informações,
+    possibilitando filtros específicos)
+  fundamentacao: Art. 8º, §3º, inciso I, da LAI
+  fundamentacao_herdada: false
+  dimensao: filtro_pesquisa
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '7.8'
+  categoria: '7'
+  descricao: Gravação de relatórios em diversos formatos
+  fundamentacao: Art. 8º, §3º, inciso II, da LAI
+  fundamentacao_herdada: false
+  dimensao: gravacao_relatorios
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '7.9'
+  categoria: '7'
+  descricao: Existência de informações atualizadas
+  fundamentacao: Art. 8º, §3º, inciso VI, da LAI
+  fundamentacao_herdada: false
+  dimensao: atualidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '7.10'
+  categoria: '7'
+  descricao: Existência de histórico das informações
+  fundamentacao: Arts. 7º, incisos II e VI, e 8º, "caput", da LAI
+  fundamentacao_herdada: false
+  dimensao: serie_historica
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '8.1'
+  categoria: '8'
+  descricao: Relação dos contratos celebrados em ordem sequencial, contendo, no mínimo, indicação do contratado(a),
+    do valor, do objeto e da vigência, bem como dos aditivos deles decorrentes
+  fundamentacao: Arts 7º, VI e 8º, §1º, inciso IV, da LAI
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: essencial
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '8.2'
+  categoria: '8'
+  descricao: Íntegra dos contratos e respectivos termos aditivos
+  fundamentacao: Arts 7º, VI e 8º, §1º, inciso IV, da LAI
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '8.3'
+  categoria: '8'
+  descricao: Indicação do Fiscal do Contrato
+  fundamentacao: Arts 7º, VI e 8º, §1º, inciso IV, da LAI
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '8.4'
+  categoria: '8'
+  descricao: Existência de informações atualizadas
+  fundamentacao: Art. 8º, §3º, inciso VI, da LAI
+  fundamentacao_herdada: false
+  dimensao: atualidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '8.5'
+  categoria: '8'
+  descricao: Existência de histórico das informações
+  fundamentacao: Arts. 7º, incisos II e VI, e 8º, "caput", da LAI
+  fundamentacao_herdada: false
+  dimensao: serie_historica
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '8.6'
+  categoria: '8'
+  descricao: Gravação de relatórios em diversos formatos
+  fundamentacao: Art. 8º, §3º, inciso II, da LAI
+  fundamentacao_herdada: false
+  dimensao: gravacao_relatorios
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '8.7'
+  categoria: '8'
+  descricao: Ferramenta de pesquisa específica (que permita pesquisar dentro deste conjunto de informações,
+    possibilitando filtros específicos)
+  fundamentacao: Art. 8º, §3º, inciso I, da LAI
+  fundamentacao_herdada: false
+  dimensao: filtro_pesquisa
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '8.8'
+  categoria: '8'
+  descricao: Ordem cronológica de seus pagamentos, bem como as justificativas que fundamentarem a eventual
+    alteração dessa ordem
+  fundamentacao: Art. 141º, §3º, da Lei nº 14.133/2021
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '9.1'
+  categoria: '9'
+  descricao: Existência de histórico das informações
+  fundamentacao: Artigo 7º, inciso VI, da LAI
+  fundamentacao_herdada: false
+  dimensao: serie_historica
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '9.2'
+  categoria: '9'
+  descricao: Existência de informações atualizadas
+  fundamentacao: Artigo 7º, inciso VI, da LAI
+  fundamentacao_herdada: true
+  dimensao: atualidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '10.1'
+  categoria: '10'
+  descricao: Existência de histórico das informações
+  fundamentacao: Art. 7º, inciso VI, da LAI
+  fundamentacao_herdada: false
+  dimensao: serie_historica
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '10.2'
+  categoria: '10'
+  descricao: Existência de informações atualizadas
+  fundamentacao: Art. 7º, inciso VI, da LAI
+  fundamentacao_herdada: true
+  dimensao: atualidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '11.1'
+  categoria: '11'
+  descricao: 'Divulga informações sobre obras: data de início, etapas, percentual concluído, status e
+    previsão de conclusão'
+  fundamentacao: Art. 94º, §3, da Lei nº 14.133/2021
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '11.2'
+  categoria: '11'
+  descricao: Divulga os quantitativos e os preços unitários e totais contratados
+  fundamentacao: Art. 8º, §1º, V, da LAI; Art. 94º, § 3º, da Lei nº 14.133/2021
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '11.3'
+  categoria: '11'
+  descricao: Divulga os quantitativos executados e os preços praticados
+  fundamentacao: Art. 8º, §1º, V, da LAI; Art. 94º, § 3º, da Lei nº 14.133/2021
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '11.4'
+  categoria: '11'
+  descricao: Relação das obras paralisadas contendo o motivo, o responsável pela inexecução temporária
+    do objeto do contrato e a data prevista para o reinício da sua execução
+  fundamentacao: Art. 8º, §1º, V, da LAI, e art. 115º, § 6º, da Lei nº 14.133/2021
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: true
+  nota: Só se aplica se houver obras paralisadas; declaração de inexistência atende.
+- codigo: '12.1'
+  categoria: '12'
+  descricao: Publica o Relatório de Gestão Fiscal (RGF)
+  fundamentacao: Art. 48º, "caput", da LC nº 101/00
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: essencial
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '12.2'
+  categoria: '12'
+  descricao: Existência de informações atualizadas
+  fundamentacao: Art. 8º, §3º, inciso VI, da LAI
+  fundamentacao_herdada: false
+  dimensao: atualidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '12.3'
+  categoria: '12'
+  descricao: Existência de histórico das informações
+  fundamentacao: Arts. 7º, incisos II e VI, e 8º, "caput", da LAI
+  fundamentacao_herdada: false
+  dimensao: serie_historica
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '12.4'
+  categoria: '12'
+  descricao: Ferramenta de pesquisa específica (que permita pesquisar dentro deste conjunto de informações,
+    possibilitando filtros específicos)
+  fundamentacao: Art. 8º, §3º, inciso I, da LAI
+  fundamentacao_herdada: false
+  dimensao: filtro_pesquisa
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '12.5'
+  categoria: '12'
+  descricao: Publica a Prestação de Contas de Governo dos anos anteriores (Parecer Prévio do TCE/RJ em
+    relação às Contas de Governo)
+  fundamentacao: Art. 48º, "caput", da LC nº 101/00
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '12.6'
+  categoria: '12'
+  descricao: Divulga o Relatório de Gestão ou Atividades
+  fundamentacao: Art. 8º, §1º, inciso V, da LAI
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '13.2'
+  categoria: '13'
+  descricao: Autor ou Proponente da Emenda (identificação do parlamentar proponente, com nome completo
+    e opcional indicação do partido e unidade parlamentar)
+  fundamentacao: ADPF nº 854/DF, de 23/10/2025; Deliberação TCE/RJ nº 360/2025, de 18/12/2025; Art. 163º-A
+    da CRFB
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: true
+  nota: Depende de a entidade receber/executar emendas parlamentares (ADPF 854).
+- codigo: '13.3'
+  categoria: '13'
+  descricao: Beneficiário (localidade beneficiada, com indicação do município (ou região/bairro), onde
+    os recursos serão aplicados ou que será beneficiado pelo projeto/ação financiado)
+  fundamentacao: ADPF nº 854/DF, de 23/10/2025; Deliberação TCE/RJ nº 360/2025, de 18/12/2025; Art. 163º-A
+    da CRFB
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: true
+  nota: Depende de a entidade receber/executar emendas parlamentares (ADPF 854).
+- codigo: '13.4'
+  categoria: '13'
+  descricao: Objeto da despesa (descrição detalhada do propósito do gasto aprovado na emenda, incluindo
+    a ação governamental, projeto ou atividade a ser executado e sua finalidade específica)
+  fundamentacao: ADPF nº 854/DF, de 23/10/2025; Deliberação TCE/RJ nº 360/2025, de 18/12/2025; Art. 163º-A
+    da CRFB
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: true
+  nota: Depende de a entidade receber/executar emendas parlamentares (ADPF 854).
+- codigo: '13.5'
+  categoria: '13'
+  descricao: Identificação da Emenda (número de referência ou código único da emenda no orçamento, vinculado
+    ao respectivo ato normativo (LOA ou crédito adicional) que a aprovou
+  fundamentacao: ADPF nº 854/DF, de 23/10/2025; Deliberação TCE/RJ nº 360/2025, de 18/12/2025; Art. 163º-A
+    da CRFB
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: true
+  nota: Depende de a entidade receber/executar emendas parlamentares (ADPF 854).
+- codigo: '13.6'
+  categoria: '13'
+  descricao: Cronograma físico-financeiro de execução (prazos previstos para a implementação do objeto
+    da emenda, com datas estimadas de início e término, incluindo fases ou etapas intermediárias quando
+    pactuadas em instrumentos como convênios ou planos de trabalho)
+  fundamentacao: ADPF nº 854/DF, de 23/10/2025; Deliberação TCE/RJ nº 360/2025, de 18/12/2025; Art. 163º-A
+    da CRFB
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: true
+  nota: Depende de a entidade receber/executar emendas parlamentares (ADPF 854).
+- codigo: '13.7'
+  categoria: '13'
+  descricao: 'Instrumentos vinculados: referência a eventuais instrumentos jurídicos celebrados para a
+    execução da emenda, tais como números de convênios, contratos de repasse, termos de fomento ou similares,
+    se existentes, bem como o número do processo administrativo correspondente.'
+  fundamentacao: ADPF nº 854/DF, de 23/10/2025; Deliberação TCE/RJ nº 360/2025, de 18/12/2025; Art. 163º-A
+    da CRFB
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: true
+  nota: Depende de a entidade receber/executar emendas parlamentares (ADPF 854).
+- codigo: '13.8'
+  categoria: '13'
+  descricao: Valor alocado (montante de recursos previsto na emenda parlamentar)
+  fundamentacao: ADPF nº 854/DF, de 23/10/2025; Deliberação TCE/RJ nº 360/2025, de 18/12/2025; Art. 163º-A
+    da CRFB
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: true
+  nota: Depende de a entidade receber/executar emendas parlamentares (ADPF 854).
+- codigo: '14.1'
+  categoria: '14'
+  descricao: Indicação da unidade/setor responsável pelo SIC
+  fundamentacao: Arts. 8º, §3º, VII e 9º, I, da LAI
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '14.2'
+  categoria: '14'
+  descricao: Indicação de endereço físico da unidade responsável pelo SIC
+  fundamentacao: Arts. 8º, §3º, VII e 9º, I, da LAI
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '14.3'
+  categoria: '14'
+  descricao: Indicação dos horários de funcionamento da unidade responsável pelo SIC
+  fundamentacao: Arts. 8º, §3º, VII e 9º, I, da LAI
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '14.4'
+  categoria: '14'
+  descricao: Indicação de telefone e e-mail da unidade responsável pelo SIC
+  fundamentacao: Arts. 8º, §3º, VII e 9º, I, da LAI
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '15.1'
+  categoria: '15'
+  descricao: Há possibilidade de envio de pedidos de informação de forma eletrônica (e-SIC)
+  fundamentacao: Art. 10º, §2º, da LAI
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: essencial
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '15.2'
+  categoria: '15'
+  descricao: 'A solicitação por meio do e-SIC é simples, ou seja, sem a exigência de itens de identificação
+    do requerente que dificultem ou impossibilitem o acesso à informação, tais como: envio de documentos,
+    assinatura reconhecida, declaração de responsabilidade, maioridade. *A exigência de cadastro prévio
+    não configura dificuldade ou impossibilidade de acesso à informação.'
+  fundamentacao: Art. 10º, §1º, da LAI
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: essencial
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '15.3'
+  categoria: '15'
+  descricao: Instrumento normativo local que regulamente a LAI.
+  fundamentacao: Art. 45º, da LAI
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '15.4'
+  categoria: '15'
+  descricao: Divulga, na seção relativa ao e-SIC, os prazos de resposta ao cidadão, incluindo o recursal,
+    e as autoridades competentes para o exame dos pedidos, além do procedimento referente à realização
+    do pedido e de eventual recurso?
+  fundamentacao: Arts. 7º, 15º e 16º, da LAI
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '15.5'
+  categoria: '15'
+  descricao: O ente publica relatório anual estatístico contendo a quantidade de pedidos de acesso recebidos,
+    atendidos, indeferidos, bem como informações genéricas sobre os solicitantes.
+  fundamentacao: Art. 30º, inciso III, da LAI
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '15.6'
+  categoria: '15'
+  descricao: Existe rol das informações que tenham sido desclassificadas nos últimos 12 (doze) meses.
+  fundamentacao: Art. 30º, inciso I, da LAI
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: true
+  nota: Rol pode ser vazio; deve haver declaração de que não houve desclassificação.
+- codigo: '15.7'
+  categoria: '15'
+  descricao: Lista de documentos classificados em cada grau de sigilo, contendo pelo menos o assunto sobre
+    o qual versa a informação, a categoria na qual ela se encontra, o dispositivo legal que fundamenta
+    a classificação e o respectivo prazo?
+  fundamentacao: Art. 30º, inciso II, da LAI
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: true
+  nota: Lista pode ser vazia; deve haver declaração de que não há informação classificada.
+- codigo: '16.1'
+  categoria: '16'
+  descricao: Exibição do “caminho” de páginas percorridas pelo usuário
+  fundamentacao: Art. 8º, §3º, inciso VIII, da LAI, e art. 63º, "caput", e § 1º, da Lei nº 13.146/15,
+    e art. 3º, XIX, da Lei nº 14.129/2021
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '16.2'
+  categoria: '16'
+  descricao: Opção de alto contraste
+  fundamentacao: Art. 8º, §3º, inciso VIII, da LAI, e art. 63º, "caput", e § 1º, da Lei nº 13.146/15,
+    e art. 3º, XIX, da Lei nº 14.129/2021
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '16.3'
+  categoria: '16'
+  descricao: Ferramenta de redimensionamento de texto
+  fundamentacao: Art. 8º, §3º, inciso VIII, da LAI, e art. 63º, "caput", e § 1º, da Lei nº 13.146/15,
+    e art. 3º, XIX, da Lei nº 14.129/2021
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '16.4'
+  categoria: '16'
+  descricao: Site oficial e o portal de transparência contêm símbolo de acessibilidade em destaque
+  fundamentacao: Art. 8º, §3º, inciso VIII, da LAI, e art. 63º, "caput", e § 1º, da Lei nº 13.146/15,
+    e art. 3º, XIX, da Lei nº 14.129/2021
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '16.5'
+  categoria: '16'
+  descricao: Verificação dos itens de acessibilidade por intermédio da ferramenta disponível no endereço
+    https://accessmonitor.acessibilidade.gov.pt/.
+  fundamentacao: Art. 8º, §3º, inciso VIII, da LAI, e art. 63º, "caput", e § 1º, da Lei nº 13.146/15,
+    e art. 3º, XIX, da Lei nº 14.129/2021
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '17.1'
+  categoria: '17'
+  descricao: Há informações sobre o atendimento presencial pela Ouvidoria. (endereço físico, telefone,
+    e-mail e horário de funcionamento da unidade responsável)
+  fundamentacao: Arts. 7º, 13º e ss. da Lei nº 13.460/17, e art. 9º, II, da LAI
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: recomendado
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '17.2'
+  categoria: '17'
+  descricao: Divulga Carta de Serviços ao Usuário
+  fundamentacao: Arts. 7º, 13º e ss. da Lei nº 13.460/17, e art. 9º, II, da LAI
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: recomendado
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '17.3'
+  categoria: '17'
+  descricao: Há canal eletrônico de acesso/interação com a Ouvidoria
+  fundamentacao: Arts. 7º, 13º e ss. da Lei nº 13.460/17, e art. 9º, II, da LAI
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: recomendado
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '18.1'
+  categoria: '18'
+  descricao: Identifica o encarregado/responsável pelo tratamento de dados pessoais e disponibiliza Canal
+    de Comunicação (telefone e/ou e-mail)
+  fundamentacao: Arts. 5º, inciso VIII, 23º, inciso III, 41º, §1º, da LGPD; Art. 3º, incisos XVII, da
+    Lei nº 14.129/2021
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: recomendado
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '18.2'
+  categoria: '18'
+  descricao: Possibilita a demanda e o acesso a serviços públicos por meio digital, sem necessidade de
+    solicitação presencial
+  fundamentacao: Arts. 3º, incisos II, III e X, e 14º, da Lei 14.129/2021
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: recomendado
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '18.3'
+  categoria: '18'
+  descricao: Possibilita o acesso automatizado por sistemas externos em dados abertos (estruturados e
+    legíveis por máquina), e a página contém as regras de utilização
+  fundamentacao: Art. 8º, §3º, III, da LAI; Art. 3º, XXV, da Lei nº 14.129/2021
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: recomendado
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '18.4'
+  categoria: '18'
+  descricao: Realiza e divulga resultados de pesquisas de satisfação
+  fundamentacao: Art. 23º, §1º e §2º, da Lei nº 13.460/2017, c/c art. 3º, inciso IV, e 24º, inciso II,
+    da Lei 14.129/2021
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: recomendado
+  aplica_a:
+  - '*'
+  condicional: false
+- codigo: '19.1'
+  categoria: '19'
+  descricao: Existência de PPA (Lei do Plano Plurianual)
+  fundamentacao: Art. 48º, "caput", da LC nº 101/00
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - executivo:*
+  condicional: false
+- codigo: '19.2'
+  categoria: '19'
+  descricao: Existência dos Anexos do PPA
+  fundamentacao: Art. 48º, "caput", da LC nº 101/00
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - executivo:*
+  condicional: false
+- codigo: '19.3'
+  categoria: '19'
+  descricao: Existência de LDO (Lei do Diretrizes Orçamentárias)
+  fundamentacao: Art. 48º, "caput", da LC nº 101/00
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - executivo:*
+  condicional: false
+- codigo: '19.4'
+  categoria: '19'
+  descricao: Existência dos Anexos da LDO
+  fundamentacao: Art. 48º, "caput", da LC nº 101/00
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - executivo:*
+  condicional: false
+- codigo: '19.5'
+  categoria: '19'
+  descricao: Existência de LOA (Lei Orçamentária)
+  fundamentacao: Art. 48º, "caput", da LC nº 101/00
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: essencial
+  aplica_a:
+  - executivo:*
+  condicional: false
+- codigo: '19.6'
+  categoria: '19'
+  descricao: Existência dos Anexos da LOA
+  fundamentacao: Art. 48º, "caput", da LC nº 101/00
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - executivo:*
+  condicional: false
+- codigo: '19.7'
+  categoria: '19'
+  descricao: Resultado do julgamento das Contas do Chefe do Poder Executivo pelo Poder Legislativo
+  fundamentacao: Art. 56º, §3º, da LC nº 101/00
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - executivo:*
+  condicional: false
+- codigo: '20.1'
+  categoria: '20'
+  descricao: Relatório Resumido da Execução Orçamentária (RREO)
+  fundamentacao: Art. 48º, "caput", da LC nº 101/00
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: essencial
+  aplica_a:
+  - executivo:*
+  condicional: false
+- codigo: '20.2'
+  categoria: '20'
+  descricao: Existência de informações atualizadas (RREO)
+  fundamentacao: Art. 8º, §3º, inciso VI, da LAI
+  fundamentacao_herdada: false
+  dimensao: atualidade
+  classificacao: obrigatorio
+  aplica_a:
+  - executivo:*
+  condicional: false
+- codigo: '20.3'
+  categoria: '20'
+  descricao: Existência de histórico das informações (RREO)
+  fundamentacao: Arts. 7º, incisos II e VI e 8º, "caput", da LAI
+  fundamentacao_herdada: false
+  dimensao: serie_historica
+  classificacao: obrigatorio
+  aplica_a:
+  - executivo:*
+  condicional: false
+- codigo: '20.4'
+  categoria: '20'
+  descricao: Ferramenta de pesquisa específica (que permita pesquisar dentro deste conjunto de informações,
+    possibilitando filtros específicos) (RREO)
+  fundamentacao: Art. 8º, §3º, inciso I, da LAI
+  fundamentacao_herdada: false
+  dimensao: filtro_pesquisa
+  classificacao: obrigatorio
+  aplica_a:
+  - executivo:*
+  condicional: false
+- codigo: '20.5'
+  categoria: '20'
+  descricao: Publica o Balanço Orçamentário
+  fundamentacao: Art. 48, §2º, da LC nº 101/00; Arts. 101 a 104, da Lei nº 4.320/1964; MCASP - Parte V;
+    Normas contábeis aplicadas ao setor público
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - executivo:*
+  condicional: false
+- codigo: '20.6'
+  categoria: '20'
+  descricao: Publica o Balanço Financeiro
+  fundamentacao: Art. 48, §2º, da LC nº 101/00; Arts. 101 a 104, da Lei nº 4.320/1964; MCASP - Parte V;
+    Normas contábeis aplicadas ao setor público
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - executivo:*
+  condicional: false
+- codigo: '20.7'
+  categoria: '20'
+  descricao: Publica o Balanço Patrimonial
+  fundamentacao: Art. 48, §2º, da LC nº 101/00; Arts. 101 a 104, da Lei nº 4.320/1964; MCASP - Parte V;
+    Normas contábeis aplicadas ao setor público
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - executivo:*
+  condicional: false
+- codigo: '20.8'
+  categoria: '20'
+  descricao: Publica a Demonstração das Variações Patrimoniais
+  fundamentacao: Art. 48, §2º, da LC nº 101/00; Arts. 101 a 104, da Lei nº 4.320/1964; MCASP - Parte V;
+    Normas contábeis aplicadas ao setor público
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - executivo:*
+  condicional: false
+- codigo: '20.9'
+  categoria: '20'
+  descricao: Publica a Demonstração do Fluxo de Caixa
+  fundamentacao: Art. 48, §2º, da LC nº 101/00; Arts. 101 a 104, da Lei nº 4.320/1964; MCASP - Parte V;
+    Normas contábeis aplicadas ao setor público
+  fundamentacao_herdada: true
+  dimensao: disponibilidade
+  classificacao: obrigatorio
+  aplica_a:
+  - executivo:*
+  condicional: false
+- codigo: '21.1'
+  categoria: '21'
+  descricao: Divulga informações relacionadas aos serviços de saúde, indicando os horários, os profissionais
+    prestadores de serviços, as especialidades e local (Executivo Municipal)
+  fundamentacao: Art. 7º, VI, da Lei nº 8.080/1990
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: recomendado
+  aplica_a:
+  - executivo:municipal
+  condicional: false
+- codigo: '21.2'
+  categoria: '21'
+  descricao: Divulga os estoques de medicamentos das farmácias públicas
+  fundamentacao: Art. 6º-A, da Lei nº 8.080/1990 (alterada pela Lei nº 14.654/2023)
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: recomendado
+  aplica_a:
+  - executivo:*
+  condicional: false
+- codigo: '21.3'
+  categoria: '21'
+  descricao: Divulga a lista de espera em creches públicas e os critérios de priorização de acesso a elas
+    (Executivo Municipal)
+  fundamentacao: Art. 37º, "caput", da CF; Art. 8º, §1º, V, da LAI; Art. 5º, §1º, IV, da Lei nº 9.394/96
+    (LDB, alterada pela Lei nº 14.685/23)
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: recomendado
+  aplica_a:
+  - executivo:municipal
+  condicional: false
+- codigo: '21.4'
+  categoria: '21'
+  descricao: Divulga a lista dos inscritos em dívida ativa, contendo, no mínimo, dados referentes ao nome
+    do inscrito e o valor total da dívida
+  fundamentacao: Art. 198º, § 3º, II, da Lei nº 5.172/1966
+  fundamentacao_herdada: false
+  dimensao: disponibilidade
+  classificacao: recomendado
+  aplica_a:
+  - executivo:*
+  condicional: false
+observacoes_fonte:
+- 'Categoria 13: numeração sem o(s) item(ns) 13.1'
+- 'Critério 4.1: fundamentação cita ''LC nº 101/20''; provavelmente ''LC nº 101/00'' (Lei de Responsabilidade
+  Fiscal).'

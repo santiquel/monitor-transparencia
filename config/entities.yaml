@@ -1,0 +1,91 @@
+# Cadastro de entidades avaliadas (entrada do sistema).
+#
+# Campos:
+#   slug        identificador estável, usado em URLs da API (minúsculas e hífens)
+#   poder/esfera  definem o TIPO da entidade -> decide quais critérios se aplicam
+#   url_site    site oficial (obrigatório)
+#   url_portal  Portal da Transparência; se ausente, o coletor tenta DESCOBRIR
+#               a partir do site (links com "transparência" no texto)
+#
+# Reconhecimento feito em 11/10/2026 (ver docs/03_reconhecimento_portais.md).
+entidades:
+  - slug: rio-de-janeiro
+    nome: Prefeitura da Cidade do Rio de Janeiro
+    municipio: Rio de Janeiro
+    uf: RJ
+    codigo_ibge: "3304557"
+    poder: executivo
+    esfera: municipal
+    url_site: https://prefeitura.rio/
+    url_portal: https://transparencia.prefeitura.rio/
+    notas: Site em WordPress; dados abertos em data.rio.
+
+  - slug: duque-de-caxias
+    nome: Prefeitura Municipal de Duque de Caxias
+    municipio: Duque de Caxias
+    uf: RJ
+    codigo_ibge: "3301702"
+    poder: executivo
+    esfera: municipal
+    url_site: https://duquedecaxias.rj.gov.br/
+    notas: >-
+      Redireciona para portal.duquedecaxias.rj.gov.br; HTML inicial sem links
+      (aplicação JavaScript) -> exige navegador real. Portal a descobrir.
+
+  - slug: japeri
+    nome: Prefeitura Municipal de Japeri
+    municipio: Japeri
+    uf: RJ
+    codigo_ibge: "3302270"
+    poder: executivo
+    esfera: municipal
+    url_site: https://www.japeri.rj.gov.br/
+    url_portal: https://japeri.geosiap.net.br/portal-transparencia/home
+    notas: Portal de transparência do fornecedor GeoSiap; e-SIC via Fala.BR (CGU).
+
+  - slug: itaborai
+    nome: Prefeitura Municipal de Itaboraí
+    municipio: Itaboraí
+    uf: RJ
+    codigo_ibge: "3301900"
+    poder: executivo
+    esfera: municipal
+    url_site: https://www.itaborai.rj.gov.br/
+    notas: >-
+      Redireciona para site.ib.itaborai.rj.gov.br; links do menu de transparência
+      são "javascript:void(0)" -> exige navegador real. Portal a descobrir.
+
+  - slug: cachoeiras-de-macacu
+    nome: Prefeitura Municipal de Cachoeiras de Macacu
+    municipio: Cachoeiras de Macacu
+    uf: RJ
+    codigo_ibge: "3300803"
+    poder: executivo
+    esfera: municipal
+    url_site: https://www.cachoeirasdemacacu.rj.gov.br/
+    notas: >-
+      robots.txt bloqueou o leitor automático usado no reconhecimento.
+      Política de robots.txt a decidir (ver documentação). Portal a descobrir.
+
+  # --- Extensão opcional ---
+  - slug: niteroi
+    nome: Prefeitura Municipal de Niterói
+    municipio: Niterói
+    uf: RJ
+    codigo_ibge: "3303302"
+    poder: executivo
+    esfera: municipal
+    url_site: https://www.niteroi.rj.gov.br/
+    url_portal: https://transparencia.niteroi.rj.gov.br/
+    notas: Portal em aplicação de página única (rota com "#/"); e-SIC próprio.
+
+  - slug: marica
+    nome: Prefeitura Municipal de Maricá
+    municipio: Maricá
+    uf: RJ
+    codigo_ibge: "3302700"
+    poder: executivo
+    esfera: municipal
+    url_site: https://www.marica.rj.gov.br/
+    url_portal: https://transparencia.marica.rj.gov.br/
+    notas: Caminhos do portal indicam o sistema e-cidade.
