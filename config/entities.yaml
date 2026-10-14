@@ -28,9 +28,10 @@ entidades:
     poder: executivo
     esfera: municipal
     url_site: https://duquedecaxias.rj.gov.br/
+    url_portal: https://transparencia.duquedecaxias.rj.gov.br/
     notas: >-
-      Redireciona para portal.duquedecaxias.rj.gov.br; HTML inicial sem links
-      (aplicação JavaScript) -> exige navegador real. Portal a descobrir.
+      Site redireciona para portal.duquedecaxias.rj.gov.br; HTML inicial sem links
+      (aplicação JavaScript). O Portal da Transparência é HTML legível sem JavaScript.
 
   - slug: japeri
     nome: Prefeitura Municipal de Japeri
@@ -51,9 +52,10 @@ entidades:
     poder: executivo
     esfera: municipal
     url_site: https://www.itaborai.rj.gov.br/
+    url_portal: https://transparencianovo.ib.itaborai.rj.gov.br/
     notas: >-
-      Redireciona para site.ib.itaborai.rj.gov.br; links do menu de transparência
-      são "javascript:void(0)" -> exige navegador real. Portal a descobrir.
+      Site redireciona para site.ib.itaborai.rj.gov.br; links do menu de transparência
+      são "javascript:void(0)". O portal é um WordPress próprio, legível sem JavaScript.
 
   - slug: cachoeiras-de-macacu
     nome: Prefeitura Municipal de Cachoeiras de Macacu
@@ -63,9 +65,11 @@ entidades:
     poder: executivo
     esfera: municipal
     url_site: https://www.cachoeirasdemacacu.rj.gov.br/
+    url_portal: https://transparencia.betha.cloud/#/VZIcwd3tEQSz63QIK2HkQw==
     notas: >-
-      robots.txt bloqueou o leitor automático usado no reconhecimento.
-      Política de robots.txt a decidir (ver documentação). Portal a descobrir.
+      robots.txt do site bloqueou o leitor automático usado no reconhecimento.
+      Portal do fornecedor Betha: aplicação Vue de página única (rota "#/") ->
+      exige navegador real.
 
   # --- Extensão opcional ---
   - slug: niteroi
