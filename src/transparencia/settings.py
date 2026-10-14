@@ -29,6 +29,12 @@ class Settings(BaseSettings):
     # Onde ficam os snapshots coletados (HTML, PDFs, screenshots) — fora do Git
     data_dir: Path = PROJECT_ROOT / "data"
 
+    # Identificação do coletor nos sites visitados. É o nome que o robots.txt enxerga,
+    # e o link permite ao administrador do site saber quem está acessando e por quê.
+    coletor_user_agent: str = (
+        "MonitorTransparencia/0.1 (+https://github.com/santiquel/monitor-transparencia)"
+    )
+
     # IA (usada a partir da Fase 3)
     anthropic_api_key: str | None = None
     llm_model: str = "claude-haiku-5-5"

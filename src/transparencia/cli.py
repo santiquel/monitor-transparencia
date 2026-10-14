@@ -5,6 +5,8 @@ Exemplos (no terminal do VSCode, na raiz do projeto):
     uv run transparencia catalogo gerar
     uv run transparencia catalogo resumo
     uv run transparencia seed
+    uv run transparencia coletar japeri
+    uv run transparencia coletar --todas --max-paginas 30
 """
 
 from collections import Counter
@@ -101,6 +103,76 @@ def seed() -> None:
         f"[green]Entidades[/green]: {r.entidades_criadas} criadas, "
         f"{r.entidades_atualizadas} atualizadas"
     )
+
+
+def _mostrar_pagina(p) -> None:
+    cor = "green" if p.ok else "red"
+    status = p.http_status or "---"
+    temas = f" [dim]{','.join(p.temas)}[/dim]" if p.temas else ""
+    console.print(
+        f"  [{cor}]{status}[/{cor}] {p.modo_render or '-':7} p{p.profundidade} "
+        f"{p.url_final or p.url}{temas}" + (f" [red]{p.erro[:80]}[/red]" if p.erro else ""),
+        highlight=False,
+    )
+
+
+@app.command("coletar")
+def coletar(
+    slugs: Annotated[list[str] | None, typer.Argument(help="Slugs das entidades")] = None,
+    todas: Annotated[
+        bool, typer.Option("--todas", help="Coleta todas as entidades ativas")
+    ] = False,
+    max_paginas: Annotated[int, typer.Option(help="Orçamento de páginas HTML")] = 60,
+    max_documentos: Annotated[int, typer.Option(help="Orçamento de PDFs/planilhas")] = 25,
+    profundidade: Annotated[int, typer.Option(help="Cliques a partir das sementes")] = 3,
+    sem_navegador: Annotated[bool, typer.Option(help="Só HTTP simples (sem Playwright)")] = False,
+) -> None:
+    """Visita site e portal da entidade e guarda os snapshots (data/ + tabela pages)."""
+    from sqlalchemy import select
+
+    from transparencia.collector.coletor import ParametrosColeta
+    from transparencia.collector.execucao import executar_coleta
+    from transparencia.db.models import Entity
+    from transparencia.db.session import session_scope
+
+    cadastro = {e.slug: e for e in carregar_entidades(get_settings().entities_path).entidades}
+    if todas:
+        slugs = [slug for slug, e in cadastro.items() if e.ativo]
+    if not slugs:
+        raise typer.BadParameter("informe ao menos um slug ou use --todas")
+    desconhecidos = [s for s in slugs if s not in cadastro]
+    if desconhecidos:
+        raise typer.BadParameter(f"slugs fora de config/entities.yaml: {desconhecidos}")
+
+    resumo = Table(title="Resumo da coleta")
+    for col in ("Entidade", "Run", "Status", "Páginas OK", "Com erro", "Fornecedor", "Avisos"):
+        resumo.add_column(col)
+
+    for slug in slugs:
+        params = ParametrosColeta(
+            max_paginas=max_paginas,
+            max_documentos=max_documentos,
+            profundidade_max=profundidade,
+            usar_navegador=not sem_navegador,
+            ignorar_robots=cadastro[slug].ignorar_robots,
+        )
+        with session_scope() as session:
+            entity = session.scalar(select(Entity).where(Entity.slug == slug))
+            if entity is None:
+                console.print(f"[red]{slug}[/red] não está no banco: rode `transparencia seed`.")
+                continue
+            console.print(f"\n[bold]{entity.nome}[/bold]")
+            run = executar_coleta(session, entity, params, ao_coletar=_mostrar_pagina)
+            resumo.add_row(
+                slug,
+                str(run.id),
+                run.status,
+                str(run.paginas_coletadas),
+                str(run.paginas_com_erro),
+                run.fornecedor_detectado or "-",
+                (run.erro or "")[:60],
+            )
+    console.print(resumo)
 
 
 if __name__ == "__main__":

@@ -18,6 +18,10 @@ dependencies = [
     "rich>=13.9",
     # Leitura do checklist original (.xlsx)
     "openpyxl>=3.1",
+    "httpx>=0.28.1",
+    "beautifulsoup4>=4.15.0",
+    "lxml>=6.1.3",
+    "playwright>=1.64.0",
 ]
 
 [dependency-groups]

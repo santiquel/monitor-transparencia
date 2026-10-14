@@ -64,12 +64,12 @@ entidades:
     codigo_ibge: "3300803"
     poder: executivo
     esfera: municipal
-    url_site: https://www.cachoeirasdemacacu.rj.gov.br/
+    url_site: https://www.prefeituracachoeiras.com/
     url_portal: https://transparencia.betha.cloud/#/VZIcwd3tEQSz63QIK2HkQw==
     notas: >-
-      robots.txt do site bloqueou o leitor automático usado no reconhecimento.
-      Portal do fornecedor Betha: aplicação Vue de página única (rota "#/") ->
-      exige navegador real.
+      Site oficial confirmado em 14/10/2026: prefeituracachoeiras.com. O antigo
+      cachoeirasdemacacu.rj.gov.br recusa a conexão TLS. Portal do fornecedor Betha:
+      aplicação Vue de página única (rota "#/") -> exige navegador real.
 
   # --- Extensão opcional ---
   - slug: niteroi

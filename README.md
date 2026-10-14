@@ -24,6 +24,8 @@ docker compose up -d              # PostgreSQL 16
 uv sync                           # Python 3.12 + dependências
 uv run alembic upgrade head       # cria tabelas e views
 uv run transparencia seed         # carrega 142 critérios e 7 entidades
+uv run playwright install chromium   # navegador para portais em JavaScript (uma vez)
+uv run transparencia coletar japeri  # coleta site + portal (ou --todas)
 uv run pytest                     # testes
 ```
 
@@ -37,6 +39,7 @@ docs/                     plano, decisões, guias e documentação técnica
 migrations/               esquema do banco versionado (Alembic + SQL legível)
 src/transparencia/
   catalog/                leitura, validação e aplicabilidade dos critérios
+  collector/              coleta focada (httpx + Playwright), robots.txt, snapshots
   db/                     modelos (SQLAlchemy), sessão e carga inicial
   cli.py                  comandos `transparencia ...`
 tests/                    testes (unitários + integração com PostgreSQL no CI)
@@ -50,11 +53,12 @@ tests/                    testes (unitários + integração com PostgreSQL no CI
 | [01 — Setup no Windows](docs/01_setup_windows.md) | Do zero ao banco rodando |
 | [02 — O banco explicado](docs/02_postgres_explicado.md) | Modelo de dados, diagrama, views de histórico, decisões |
 | [03 — Reconhecimento dos portais](docs/03_reconhecimento_portais.md) | Heterogeneidade real dos 7 portais e implicações |
+| [04 — O coletor](docs/04_coletor.md) | Navegação focada, HTTP × navegador, cliques em menus JS, robots.txt, snapshots |
 
 ## Status
 
 - [x] Fase 1 — Fundação: catálogo, banco, CI
-- [ ] Fase 2 — Coleta
+- [x] Fase 2 — Coleta
 - [ ] Fase 3 — Avaliação (regras + IA) e pontuação
 - [ ] Fase 4 — API, dashboard e execução periódica
 - [ ] Fase 5 — Documentação técnica final

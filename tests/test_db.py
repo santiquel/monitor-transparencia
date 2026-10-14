@@ -93,3 +93,47 @@ def test_seed_idempotente(engine):
     with Session(engine) as s:
         assert s.scalar(select(func.count()).select_from(Criterion)) == 142
         assert s.scalar(select(func.count()).select_from(Entity)) == len(cadastro.entidades)
+
+
+def test_coleta_grava_run_paginas_e_portal_descoberto(engine, tmp_path, monkeypatch):
+    """Coleta o site fictício de test_coletor.py (sem rede) e confere o que foi gravado."""
+    import httpx
+
+    from tests.test_coletor import SITE, responder
+    from transparencia.collector.coletor import ParametrosColeta
+    from transparencia.collector.execucao import executar_coleta
+    from transparencia.db.models import CrawlRun, EntityUrl, Page
+
+    monkeypatch.setenv("DATA_DIR", str(tmp_path))
+    get_settings.cache_clear()
+    cliente = httpx.Client(transport=httpx.MockTransport(responder), follow_redirects=True)
+    params = ParametrosColeta(intervalo_por_host_s=0, usar_navegador=False)
+
+    with Session(engine, expire_on_commit=False) as s:
+        entity = Entity(
+            slug="exemplo",
+            nome="Prefeitura de Exemplo",
+            municipio="Exemplo",
+            uf="RJ",
+            poder="executivo",
+            esfera="municipal",
+        )
+        s.add(entity)
+        s.flush()
+        s.add(EntityUrl(entity_id=entity.id, tipo="site", url=SITE, origem="cadastro"))
+        s.commit()
+        run = executar_coleta(s, entity, params, cliente=cliente)
+
+    with Session(engine) as s:
+        run = s.get(CrawlRun, run.id)
+        paginas = s.scalars(select(Page).where(Page.crawl_run_id == run.id)).all()
+        portal = s.scalar(
+            select(EntityUrl).where(EntityUrl.entity_id == entity.id, EntityUrl.tipo == "portal")
+        )
+    # PARCIAL: a página bloqueada pelo robots.txt conta como "com erro"
+    assert run.status == "PARCIAL"
+    assert run.paginas_coletadas + run.paginas_com_erro == len(paginas)
+    assert run.fornecedor_detectado == "WordPress"
+    assert run.parametros["usar_navegador"] is False
+    assert portal.origem == "descoberta" and portal.fornecedor == "WordPress"
+    assert all((tmp_path / p.storage_path).exists() for p in paginas if p.storage_path)
