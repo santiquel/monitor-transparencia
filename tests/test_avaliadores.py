@@ -229,6 +229,12 @@ def test_4_6_atraso_declarado_pelo_portal_e_nao_atende(m):
     assert _avaliar("4.6", snap).status == S.NAO_ATENDE
 
 
+def test_4_6_metadado_de_publicacao_do_cms_nao_e_declaracao(m):
+    corpo = "<p>Publicado em 19/08/2019 - 15:23 | Atualizado em 30/04/2025 - 18:13</p>"
+    snap = m.pagina(PORTAL + "despesas", corpo + TEXTO, texto_link="Despesas").snapshot()
+    assert _avaliar("4.6", snap).status == S.NAO_AVALIADO  # sem dado: não acusa
+
+
 def test_4_5_sem_exportacao_visivel_nao_acusa(m):
     snap = m.pagina(PORTAL + "despesas", TEXTO, texto_link="Despesas").snapshot()
     v = _avaliar("4.5", snap)

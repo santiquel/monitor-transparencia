@@ -661,6 +661,18 @@ def loa(snap: Snapshot) -> Veredito:
 
 
 RE_ATUALIZADO = re.compile(r"atualiza\w*\s*(?:em|:)?\s*:?\s*(\d{1,2}/\d{1,2}/20\d{2})")
+# "Publicado em 19/08/2019 | Atualizado em 30/04/2025" é metadado do CMS (WordPress):
+# a data de edição do TEXTO da página, não dos dados (achado: 4.6 do Rio).
+RE_PUBLICADO = re.compile(r"publicad[oa]\s*(?:em|:)")
+
+
+def _datas_declaradas(p: PaginaSnapshot) -> list[date]:
+    datas = []
+    for m in RE_ATUALIZADO.finditer(p.texto_busca):
+        if RE_PUBLICADO.search(p.texto_busca[max(0, m.start() - 60) : m.start()]):
+            continue
+        datas += sinais.datas(m.group(1))
+    return datas
 
 
 @avaliador("4.6")
@@ -672,11 +684,7 @@ def despesa_atualizada(snap: Snapshot) -> Veredito:
     candidatas = []
     for p in paginas:
         candidatas += [(d, p, "célula de tabela") for d in sinais.datas_em_tabelas(p)]
-        candidatas += [
-            (d, p, "'atualizado em'")
-            for m in RE_ATUALIZADO.finditer(p.texto_busca)
-            for d in sinais.datas(m.group(1))
-        ]
+        candidatas += [(d, p, "'atualizado em'") for d in _datas_declaradas(p)]
     validas = [c for c in candidatas if date(2000, 1, 1) <= c[0] <= hoje]
     if not validas:
         return _dados_invisiveis(paginas[0], "despesas (sem datas visíveis)")

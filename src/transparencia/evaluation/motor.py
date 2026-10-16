@@ -49,7 +49,8 @@ from transparencia.settings import get_settings
 # 0.2: correções da 1ª medição contra o golden set (evidência negativa exige fonte
 # completa em 4.5/4.6/20.2; 7.1 exige os 7 campos; 18.1 com contexto LGPD e domínio
 # da entidade; IA não acusa sozinha).
-VERSAO_MOTOR = "0.2"
+# 0.3: 4.6 ignora "Publicado em ... | Atualizado em ..." (metadado do CMS, não dos dados).
+VERSAO_MOTOR = "0.3"
 
 
 def versao_regua(regras: RegrasAvaliacao) -> str:
