@@ -7,6 +7,8 @@ Exemplos (no terminal do VSCode, na raiz do projeto):
     uv run transparencia seed
     uv run transparencia coletar japeri
     uv run transparencia coletar --todas --max-paginas 30
+    uv run transparencia avaliar --todas
+    uv run transparencia golden medir --nome so-regras
 """
 
 from collections import Counter
@@ -313,6 +315,82 @@ def golden_modelo(
         entidades or ENTIDADES_PADRAO,
     )
     console.print(f"[green]OK[/green] {linhas} linhas para rotular -> {s.golden_path}")
+
+
+@golden_app.command("medir")
+def golden_medir(
+    nome: Annotated[
+        str, typer.Option(help="Rótulo da medição, vai no nome do arquivo (ex.: so-regras)")
+    ] = "medicao",
+    avaliacao: Annotated[
+        list[int] | None,
+        typer.Option(help="Id da avaliação a medir (repita; padrão: a mais recente de cada)"),
+    ] = None,
+) -> None:
+    """Compara as avaliações com o golden set e grava o relatório em golden/medicoes/."""
+    from datetime import datetime
+
+    from sqlalchemy import select
+
+    from transparencia.db.models import CrawlRun
+    from transparencia.db.session import session_scope
+    from transparencia.evaluation.medicao import (
+        escolher_avaliacoes,
+        gerar_relatorio,
+        gravar_csv,
+        ler_rotulos,
+        medir,
+        pct,
+        previsoes_da_avaliacao,
+    )
+    from transparencia.evaluation.motor import versao_regua
+    from transparencia.evaluation.regras import carregar_regras
+
+    s = get_settings()
+    rotulos = ler_rotulos(s.golden_path)
+    slugs = sorted({r.entidade for r in rotulos})
+    with session_scope() as session:
+        avaliacoes = escolher_avaliacoes(session, slugs, avaliacao)
+        faltando = [slug for slug in slugs if slug not in avaliacoes]
+        if faltando:
+            console.print(
+                f"[yellow]Sem avaliação para {faltando}: casos contam como NAO_AVALIADO.[/yellow]"
+            )
+        previsoes = [
+            p for slug, run in avaliacoes.items() for p in previsoes_da_avaliacao(slug, run)
+        ]
+        ids_coleta = [r.crawl_run_id for r in avaliacoes.values() if r.crawl_run_id]
+        coletas = {
+            c.id: c for c in session.scalars(select(CrawlRun).where(CrawlRun.id.in_(ids_coleta)))
+        }
+        m = medir(rotulos, previsoes)
+        relatorio = gerar_relatorio(
+            m, nome, avaliacoes, coletas, versao_regua(carregar_regras(s.evaluation_rules_path))
+        )
+
+    pasta = s.golden_path.parent / "medicoes"
+    pasta.mkdir(parents=True, exist_ok=True)
+    base = pasta / f"{datetime.now():%Y-%m-%d_%H%M}_{nome}"
+    base.with_suffix(".md").write_text(relatorio, encoding="utf-8")
+    gravar_csv(m, base.with_suffix(".csv"))
+
+    t = Table(title=f"Golden set — {nome}")
+    t.add_column("Métrica")
+    t.add_column("Valor", justify="right")
+    t.add_row("Casos rotulados", f"{m.n} (+{m.ignorados_nao_sei} NAO_SEI)")
+    t.add_row("Cobertura", f"{pct(m.cobertura)} ({m.decididos}/{m.n})")
+    t.add_row("Acurácia nos decididos", f"{pct(m.acuracia)} ({m.acertos}/{m.decididos})")
+    t.add_row(f"Baseline (sempre {m.baseline_classe})", pct(m.baseline_acuracia))
+    t.add_row("Kappa de Cohen", "—" if m.kappa is None else f"{m.kappa:.2f}")
+    nao_atende = m.por_status["NAO_ATENDE"]
+    t.add_row(
+        "NAO_ATENDE precisão / recall",
+        f"{pct(nao_atende['precisao'])} / {pct(nao_atende['recall'])}",
+    )
+    t.add_row("Acusações falsas", str(len(m.acusacoes_falsas)))
+    t.add_row("Erros sinalizados p/ revisão", f"{m.erros_sinalizados}/{len(m.divergencias)}")
+    console.print(t)
+    console.print(f"Relatório: {base.with_suffix('.md')}\nCasos (CSV): {base.with_suffix('.csv')}")
 
 
 if __name__ == "__main__":

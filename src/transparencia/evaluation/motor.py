@@ -48,6 +48,12 @@ from transparencia.settings import get_settings
 # "régua" exata usada em cada avaliação (evaluation_runs.versao_regras).
 VERSAO_MOTOR = "0.1"
 
+
+def versao_regua(regras: RegrasAvaliacao) -> str:
+    """O que vai em evaluation_runs.versao_regras: rubrica + código dos avaliadores."""
+    return f"{regras.versao}+motor{VERSAO_MOTOR}"
+
+
 # Abaixo disto, o resultado é marcado para revisão humana.
 CONFIANCA_MINIMA = 0.7
 
@@ -147,7 +153,7 @@ def executar_avaliacao(
         entity_id=entity.id,
         crawl_run_id=crawl_run.id,
         catalog_version_id=catalog_version.id,
-        versao_regras=f"{regras.versao}+motor{VERSAO_MOTOR}",
+        versao_regras=versao_regua(regras),
         origem=origem,
         status=StatusExecucao.EXECUTANDO,
         started_at=datetime.now(UTC),
