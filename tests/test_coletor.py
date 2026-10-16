@@ -90,9 +90,9 @@ class NavegadorFalso:
     def __init__(self):
         self.chamadas: list[str] = []
 
-    def buscar(self, url, limite_bytes, filtro_cliques=None):
+    def buscar(self, url, limite_bytes, clicar=False):
         self.chamadas.append(url)
-        cliques = [(PORTAL + "#/consulta/1", "Servidores")] if filtro_cliques else []
+        cliques = [(PORTAL + "#/consulta/1", "Servidores")] if clicar else []
         corpo = _links(("/app/tabela", "Tabela de dados abertos"), ("/c", "c"), ("/d", "d"))
         return Resposta(url, "browser", url, 200, "text/html", _html(corpo), b"png", None, cliques)
 
@@ -322,3 +322,51 @@ def test_site_tem_cota_reservada(tmp_path):
     do_site = [p for p in requisitadas if p.url.startswith(SITE)]
     assert len(do_site) == 2
     assert len(requisitadas) <= 8
+
+
+def test_destino_em_atributo_de_dados():
+    html = (
+        b'<a href="#" data-rell="https://p.gov.br/webrun/form.jsp?sys=DSP">Despesas</a>'
+        b'<a href="#" data-href="/licitacoes">Licita\xc3\xa7\xc3\xb5es</a>'
+        b'<a href="#" data-url="nao-e-url">X</a>'
+    )
+    links = analisar_html(html, "https://p.gov.br/").links
+    assert [(link.url, link.texto, link.tag) for link in links] == [
+        ("https://p.gov.br/webrun/form.jsp?sys=DSP", "Despesas", "data"),
+        ("https://p.gov.br/licitacoes", "Licitações", "data"),
+    ]
+    assert detectar_fornecedor(links[0].url, b"") == "Webrun (Softwell)"
+
+
+# ------------------------------------------------------- vigia do navegador
+
+
+def _trabalhador_que_trava(conexao, user_agent, timeout_s):
+    """Imita um Chromium preso numa página: aceita o pedido e nunca responde."""
+    import time
+
+    conexao.send("pronto")
+    conexao.recv()
+    time.sleep(120)
+
+
+def _trabalhador_sem_chromium(conexao, user_agent, timeout_s):
+    conexao.send(RuntimeError("Executable doesn't exist (playwright install chromium)"))
+
+
+def test_vigia_encerra_navegador_travado():
+    from transparencia.collector.buscadores import BuscadorNavegador
+
+    nav = BuscadorNavegador(UA, timeout_s=0.5, alvo=_trabalhador_que_trava)
+    r = nav.buscar("https://x.gov.br/", 1000)  # prazo = 3 × 0,5 s
+    assert r.erro and "não respondeu" in r.erro and not r.ok
+    assert nav._processo is None  # processo travado foi encerrado; o próximo uso abre outro
+    nav.fechar()
+
+
+def test_navegador_ausente_vira_excecao_para_o_coletor():
+    from transparencia.collector.buscadores import BuscadorNavegador
+
+    nav = BuscadorNavegador(UA, timeout_s=1, alvo=_trabalhador_sem_chromium)
+    with pytest.raises(RuntimeError, match="playwright install"):
+        nav.buscar("https://x.gov.br/", 1000)

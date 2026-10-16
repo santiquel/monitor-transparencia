@@ -24,12 +24,15 @@ from datetime import UTC, datetime
 from urllib.parse import urlsplit
 
 from transparencia.collector.armazenamento import Armazenamento, extensao_para
-from transparencia.collector.buscadores import Buscador, FiltroTexto, Resposta
+from transparencia.collector.buscadores import Buscador, Resposta
 from transparencia.collector.fornecedor import detectar_fornecedor, escolher_fornecedor
 from transparencia.collector.html import AnaliseHtml, Link, analisar_html
 from transparencia.collector.robots import PoliticaRobots
 from transparencia.collector.urls import caminho, dominio_base, host, normalizar
 from transparencia.collector.vocabulario import eh_documento, temas_de
+
+# Temas cujos critérios se apoiam em documentos baixados (RGF/RREO/LOA; dados abertos).
+TEMAS_DE_DOCUMENTO = {"gestao_fiscal", "dados_abertos"}
 
 PRIORIDADE_SEMENTE = 1000
 PRIORIDADE_DESCOBERTA = 500
@@ -51,15 +54,6 @@ HOSTS_IGNORADOS = (
     "gstatic.com",
     "flickr.com",
 )
-
-
-def _filtro_cliques(texto: str) -> bool:
-    """Vale clicar se o texto tiver tema de conteúdo.
-
-    "Transparência" é genérico demais e "acessibilidade" costuma ser só o botão de
-    contraste/fonte, que não leva a outra página.
-    """
-    return bool(temas_de(texto) - {"transparencia", "acessibilidade"})
 
 
 @dataclass
@@ -172,7 +166,10 @@ class Coletor:
             if not (especificos or link.tag == "iframe"):
                 return False
         if documento:
-            return bool(temas or pai.temas)
+            # Só documentos que algum critério usa: relatórios fiscais e dados abertos.
+            # Na 1ª coleta completa, o orçamento de PDFs foi gasto com "Atos de designação
+            # de fiscal de contrato" (tema licitações) e nenhum RGF foi baixado.
+            return bool((temas | pai.temas) & TEMAS_DE_DOCUMENTO)
         # Links genéricos só a partir das sementes ou de páginas temáticas.
         return bool(temas) or prof <= 1 or bool(pai.temas)
 
@@ -230,23 +227,23 @@ class Coletor:
                 self.dormir(espera)
         self._ultimo_acesso[h] = self.relogio()
 
-    def _com_navegador(self, url: str, filtro: FiltroTexto | None) -> Resposta | None:
+    def _com_navegador(self, url: str, clicar: bool) -> Resposta | None:
         if self.navegador is None:
             return None
         self._esperar_vez(url)
         try:
-            return self.navegador.buscar(url, self.params.limite_bytes_html, filtro)
+            return self.navegador.buscar(url, self.params.limite_bytes_html, clicar)
         except Exception as e:  # navegador não instalado / não abriu: segue só com HTTP
             self._resultado.avisos.append(f"navegador indisponível: {type(e).__name__}: {e}")
             self.navegador = None
             return None
 
     def _buscar(
-        self, url: str, documento: bool, filtro: FiltroTexto | None
+        self, url: str, documento: bool, clicar: bool
     ) -> tuple[Resposta, AnaliseHtml | None]:
         # Servidor que precisou de navegador uma vez vai direto para ele (poupa uma requisição).
         if not documento and urlsplit(url).netloc in self._resultado.hosts_com_navegador:
-            r = self._com_navegador(url, filtro)
+            r = self._com_navegador(url, clicar)
             if r is not None and r.ok:
                 return r, analisar_html(r.conteudo, r.url_final or url)
             # Falhou no navegador (ex.: o link era um download de PDF): tenta por HTTP.
@@ -258,7 +255,7 @@ class Coletor:
 
         # HTTP falhou (bloqueio de robôs, TLS) ou veio "vazio" (app JavaScript): tenta navegador.
         precisa = not documento and (not r.ok or (analise is not None and analise.parece_vazia))
-        if precisa and (rn := self._com_navegador(url, filtro)) is not None and rn.ok:
+        if precisa and (rn := self._com_navegador(url, clicar)) is not None and rn.ok:
             # Marca o servidor que ENTREGOU o conteúdo: um link do portal pode redirecionar
             # para o sistema do fornecedor, e é este que precisa de navegador, não o portal.
             self._resultado.hosts_com_navegador.add(urlsplit(rn.url_final or url).netloc)
@@ -284,9 +281,10 @@ class Coletor:
             pagina.erro = f"{rotulo} ({decisao.motivo})"
             return pagina
 
-        # Páginas iniciais do portal: no navegador, clica nos itens sem link (menus em JS).
-        filtro = _filtro_cliques if alvo.ramo == "portal" and alvo.profundidade == 0 else None
-        r, analise = self._buscar(alvo.url, eh_documento(alvo.url), filtro)
+        # No navegador, clica nos itens sem link (menus em JS) da página inicial do portal
+        # e das páginas de gestão fiscal (na Betha, "LRF - RGF" também é item sem link).
+        clicar = alvo.ramo == "portal" and (alvo.profundidade == 0 or "gestao_fiscal" in alvo.temas)
+        r, analise = self._buscar(alvo.url, eh_documento(alvo.url), clicar)
         pagina.fetched_at = datetime.now(UTC)
         pagina.url_final = normalizar(r.url_final) if r.url_final else None
         pagina.http_status = r.status

@@ -25,7 +25,7 @@ CARACTERES_PAGINA_DE_CONTEUDO = 2500  # poucos links + muito texto = página de 
 class Link:
     url: str
     texto: str
-    tag: str  # 'a' ou 'iframe'
+    tag: str  # 'a', 'iframe', 'data' (atributo data-*) ou 'clique' (descoberto no navegador)
 
 
 @dataclass
@@ -47,6 +47,13 @@ def _texto_do_link(a) -> str:
         img = a.find("img")
         texto = a.get("title") or a.get("aria-label") or (img.get("alt") if img else "") or ""
     return " ".join(texto.split())[:300]
+
+
+ATRIBUTOS_DE_DESTINO = ("data-href", "data-url", "data-link", "data-rellink", "data-rell")
+
+
+def _tem_atributo_de_destino(tag) -> bool:
+    return any(tag.has_attr(a) for a in ATRIBUTOS_DE_DESTINO)
 
 
 def analisar_html(conteudo: bytes, url_pagina: str) -> AnaliseHtml:
@@ -72,6 +79,17 @@ def analisar_html(conteudo: bytes, url_pagina: str) -> AnaliseHtml:
         if url and url not in vistos:
             vistos.add(url)
             links.append(Link(url, quadro.get("title") or "[iframe]", "iframe"))
+    # Destinos guardados em atributos de dados e abertos por JavaScript
+    # (ex.: Duque de Caxias: <a href="#" data-rell="https://.../webrun/form...">).
+    for tag in soup.find_all(_tem_atributo_de_destino):
+        for atributo in ATRIBUTOS_DE_DESTINO:
+            valor = str(tag.get(atributo, "")).strip()
+            if not valor.startswith(("http://", "https://", "/")):
+                continue
+            url = resolver(url_base, valor)
+            if url and url not in vistos:
+                vistos.add(url)
+                links.append(Link(url, _texto_do_link(tag), "data"))
 
     for tag in soup(["script", "style", "noscript", "template"]):
         tag.decompose()

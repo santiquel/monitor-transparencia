@@ -21,6 +21,7 @@ ASSINATURAS: list[tuple[str, re.Pattern[str]]] = [
     ("IPM Atende.Net", re.compile(r"atende\.net", re.I)),
     ("Fiorilli", re.compile(r"fiorilli", re.I)),
     ("Elotech", re.compile(r"elotech", re.I)),
+    ("Webrun (Softwell)", re.compile(r"/webrun/", re.I)),
     ("WordPress", re.compile(r"/wp-content/|/wp-includes/", re.I)),
 ]
 GENERICOS = {"WordPress"}

@@ -107,3 +107,12 @@ def temas_de(*textos: str) -> set[str]:
 def eh_documento(url: str) -> bool:
     caminho = url.split("#", 1)[0].split("?", 1)[0].lower()
     return caminho.endswith(EXTENSOES_DOCUMENTO)
+
+
+def vale_clicar(texto: str) -> bool:
+    """Vale clicar num item sem link? Só se o texto tiver tema de conteúdo.
+
+    "Transparência" é genérico demais e "acessibilidade" costuma ser só o botão de
+    contraste/fonte, que não leva a outra página.
+    """
+    return bool(temas_de(texto) - {"transparencia", "acessibilidade"})
