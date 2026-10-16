@@ -19,3 +19,5 @@ data/*
 .idea/
 .DS_Store
 Thumbs.db
+# Arquivo de trava que o Excel cria enquanto a planilha está aberta
+~$*
