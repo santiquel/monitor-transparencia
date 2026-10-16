@@ -251,3 +251,60 @@ def test_pedir_coleta_enfileira_sem_duplicar(cenario):
     assert r1.json()["id"] == r2.json()["id"] and r1.json()["status"] == "PENDENTE"
     assert [j["entidade"] for j in c.get("/jobs?slug=japeri").json()] == ["japeri"]
     assert c.post("/entities/nao-existe/jobs").status_code == 404
+
+
+def _nova_coleta(engine, dia, status_12):
+    """Coleta + avaliação novas de Japeri, com 1.1 ATENDE e o 1.2 informado."""
+    with Session(engine) as s, s.begin():
+        ent = s.scalar(select(Entity).where(Entity.slug == "japeri"))
+        versao = s.scalar(select(CatalogVersion))
+        crit = {
+            c.codigo: c
+            for c in s.scalars(select(Criterion).where(Criterion.codigo.in_(["1.1", "1.2"])))
+        }
+        coleta = CrawlRun(entity_id=ent.id, url_inicial="x", status="SUCESSO", started_at=_t(dia))
+        s.add(coleta)
+        s.flush()
+        run = EvaluationRun(
+            entity_id=ent.id,
+            crawl_run_id=coleta.id,
+            catalog_version_id=versao.id,
+            versao_regras="v2",
+            status="SUCESSO",
+            started_at=_t(dia),
+        )
+        s.add(run)
+        s.flush()
+        for codigo, status in (("1.1", "ATENDE"), ("1.2", status_12)):
+            s.add(
+                CriterionResult(
+                    evaluation_run_id=run.id,
+                    criterion_id=crit[codigo].id,
+                    status=status,
+                    valor=Decimal(1) if status == "ATENDE" else None,
+                    confianca=Decimal("0.5"),
+                    metodo="REGRA",
+                    revisao_humana=status == "NAO_AVALIADO",
+                )
+            )
+        return coleta.id
+
+
+def test_veredito_herdado_enquanto_a_maquina_mantem_a_conclusao(cenario, engine):
+    c, _ = cenario
+    revisada = c.get("/entities/japeri/evaluations/latest").json()["coleta_id"]
+
+    # Coleta nova, máquina diz o mesmo (NAO_AVALIADO): o veredito humano continua valendo.
+    _nova_coleta(engine, 18, "NAO_AVALIADO")
+    a = c.get("/entities/japeri/evaluations/latest").json()
+    r12 = a["resultados"][1]
+    assert r12["veredito_humano"]["coleta_id"] == revisada  # herdado
+    assert r12["status_final"] == "NAO_ATENDE" and a["revisados"] == 1
+    assert c.get("/review").json() == []
+
+    # Coleta nova, máquina MUDOU de conclusão: algo mudou no portal -> volta ao humano.
+    _nova_coleta(engine, 20, "ATENDE")
+    a = c.get("/entities/japeri/evaluations/latest").json()
+    r12 = a["resultados"][1]
+    assert r12["veredito_humano"] is None and r12["status_final"] == "ATENDE"
+    assert a["nota_revisada"] is None

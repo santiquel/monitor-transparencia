@@ -186,12 +186,19 @@ def enviar(caminho: str, dados: dict | None = None) -> httpx.Response:
     return r
 
 
-def tem_veredito(r: dict, coleta_id: int | None) -> bool:
-    """O critério já recebeu veredito humano NESTA coleta?"""
-    rev = r.get("revisao")
-    return bool(rev and rev["status"] and rev["coleta_id"] == coleta_id) or (
-        r["status_final"] != r["status"]
-    )
+def tem_veredito(r: dict) -> bool:
+    """Há veredito humano valendo para este resultado (desta coleta ou herdado)?"""
+    return r.get("veredito_humano") is not None
+
+
+def avisar_depois(mensagem: str) -> None:
+    """Guarda uma mensagem para mostrar DEPOIS do st.rerun() (senão ela some na hora)."""
+    st.session_state["aviso"] = mensagem
+
+
+def mostrar_aviso() -> None:
+    if aviso := st.session_state.pop("aviso", None):
+        st.success(aviso)
 
 
 def painel_de_coleta(slug: str) -> None:
@@ -240,35 +247,47 @@ def painel_de_coleta(slug: str) -> None:
 OPCOES_VEREDITO = [None, "ATENDE", "ATENDE_PARCIALMENTE", "NAO_ATENDE", "NAO_APLICAVEL"]
 
 
-def formulario_revisao(r: dict, coleta_id: int | None) -> None:
-    """Registra o veredito humano e/ou a URL correta do critério."""
+def formulario_revisao(r: dict, coleta_id: int | None, entidade: str) -> None:
+    """Registra o veredito humano e/ou a URL correta do critério.
+
+    O formulário é identificado por ENTIDADE + CRITÉRIO, não pelo id do resultado:
+    se o worker terminar uma coleta enquanto a pessoa preenche, a avaliação nova
+    tem ids novos, e um formulário identificado pelo id antigo sumiria da tela no
+    envio (o que já aconteceu: a revisão se perdia em silêncio).
+    """
+    vale = r.get("veredito_humano")
+    if vale:
+        origem = (
+            "nesta coleta"
+            if vale["coleta_id"] == coleta_id
+            else f"herdado da coleta {vale['coleta_id']} (a máquina mantém a mesma conclusão)"
+        )
+        st.success(f"👤 Veredito humano: {rotulo(vale['status'])}, {origem}.")
     rev = r.get("revisao")
     if rev:
         quando = rev["criado_em"][:16].replace("T", " ")
-        partes = [f"👤 Última revisão ({quando}, {rev['revisor'] or 'sem nome'})"]
-        if rev["status"]:
-            vale = "nesta coleta" if rev["coleta_id"] == coleta_id else "em coleta anterior"
-            partes.append(f"veredito {rotulo(rev['status'])} ({vale})")
+        partes = [f"Última revisão: {quando}, {rev['revisor'] or 'sem nome'}"]
         if rev["url_indicada"]:
             partes.append(f"URL indicada: {rev['url_indicada']}")
         st.info(" · ".join(partes) + (f"\n\n{rev['comentario']}" if rev["comentario"] else ""))
 
-    with st.form(key=f"revisao-{r['id']}"):
+    chave = f"{entidade}-{r['criterio']}"
+    with st.form(key=f"revisao-{chave}"):
         st.markdown("**Revisar este critério**")
         status = st.selectbox(
             "Veredito",
             OPCOES_VEREDITO,
             format_func=lambda s: "— sem veredito (só indicar a URL) —" if s is None else rotulo(s),
-            key=f"status-{r['id']}",
+            key=f"status-{chave}",
         )
         url = st.text_input(
             "URL correta para este critério (opcional)",
             placeholder="https://… a página onde a informação realmente está",
-            key=f"url-{r['id']}",
+            key=f"url-{chave}",
         )
-        comentario = st.text_area("Comentário (opcional)", key=f"coment-{r['id']}")
+        comentario = st.text_area("Comentário (opcional)", key=f"coment-{chave}")
         revisor = st.text_input(
-            "Nome do revisor", value=st.session_state.get("revisor", ""), key=f"revisor-{r['id']}"
+            "Nome do revisor", value=st.session_state.get("revisor", ""), key=f"revisor-{chave}"
         )
         if st.form_submit_button("Registrar revisão"):
             st.session_state["revisor"] = revisor
@@ -280,10 +299,10 @@ def formulario_revisao(r: dict, coleta_id: int | None) -> None:
             }
             resp = enviar(f"/results/{r['id']}/review", dados)
             if resp.status_code == 201:
-                st.success(
-                    "Revisão registrada."
+                avisar_depois(
+                    f"Revisão do critério {r['criterio']} registrada."
                     + (
-                        " A URL entra na próxima coleta (use 'Recoletar')."
+                        " A URL entra na próxima coleta (use 'Recoletar e reavaliar')."
                         if dados["url_indicada"]
                         else ""
                     )
@@ -323,9 +342,7 @@ def pagina_entidade() -> None:
     c[2].metric("Faixa", f"{fmt(n.get('valor_min'), 0)} – {fmt(n.get('valor_max'), 0)}")
     c[3].metric("Cobertura", fmt(n.get("cobertura"), 0, "%"))
     c[4].metric("Nível", n.get("nivel") or "—")
-    pendentes = sum(
-        r["revisao_humana"] and not tem_veredito(r, aval["coleta_id"]) for r in aval["resultados"]
-    )
+    pendentes = sum(r["revisao_humana"] and not tem_veredito(r) for r in aval["resultados"])
     c[5].metric("A revisar", pendentes)
     st.caption(
         f"Avaliação {aval['id']} sobre a coleta {aval['coleta_id']} "
@@ -341,9 +358,11 @@ def pagina_entidade() -> None:
         for r in aval["resultados"]:
             if filtro and r["status_final"] not in filtro:
                 continue
-            humano = tem_veredito(r, aval["coleta_id"])
-            if humano:
-                marca = f" · 👤 revisado: {rotulo(r['status_final'])}"
+            if tem_veredito(r):
+                herdado = r["veredito_humano"]["coleta_id"] != aval["coleta_id"]
+                marca = (
+                    f" · 👤 revisado{' (herdado)' if herdado else ''}: {rotulo(r['status_final'])}"
+                )
             elif r["revisao_humana"]:
                 marca = " · 👁 revisar"
             else:
@@ -367,7 +386,7 @@ def pagina_entidade() -> None:
                     if ev["arquivo"]:
                         st.markdown(f"[Abrir o snapshot guardado]({API}{ev['arquivo']})")
                 st.divider()
-                formulario_revisao(r, aval["coleta_id"])
+                formulario_revisao(r, aval["coleta_id"], slug)
 
     with aba_hist:
         hist = api(f"/entities/{slug}/history")
@@ -503,7 +522,7 @@ def fila_revisao() -> None:
     for ev in resultado["evidencias"][:3]:
         if ev["url"]:
             st.markdown(f"Evidência: [{ev['titulo_pagina'] or ev['url']}]({ev['url']})")
-    formulario_revisao(resultado, aval["coleta_id"])
+    formulario_revisao(resultado, aval["coleta_id"], item["entidade"])
     st.caption(
         "Para recoletar com a URL indicada, abra a entidade na página 'Entidade' e use "
         "'Recoletar e reavaliar'."
@@ -561,6 +580,7 @@ def main() -> None:
         "Fila de revisão": fila_revisao,
         "Metodologia": metodologia,
     }
+    mostrar_aviso()
     escolha = st.sidebar.radio("Navegação", list(paginas))
     st.sidebar.caption(f"API: {API}")
     paginas[escolha]()

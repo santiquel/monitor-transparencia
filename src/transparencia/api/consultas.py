@@ -6,7 +6,7 @@ consome a API, mas um script ou notebook pode chamar estas funções direto).
 
 from functools import lru_cache
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from transparencia.api import esquemas as e
@@ -72,12 +72,41 @@ def _revisoes(session: Session, entity_id: int) -> dict[str, list[Revisao]]:
         select(Revisao).where(Revisao.entity_id == entity_id).order_by(Revisao.created_at)
     ):
         por_criterio.setdefault(r.criterio_codigo, []).append(r)
+    # O que a MÁQUINA dizia quando a pessoa revisou: base da herança do veredito.
+    ids = [r.criterion_result_id for rs in por_criterio.values() for r in rs]
+    status_revisado = dict(
+        session.execute(
+            select(CriterionResult.id, CriterionResult.status).where(CriterionResult.id.in_(ids))
+        ).all()
+    )
+    for rs in por_criterio.values():
+        for r in rs:
+            r.status_maquina_revisado = status_revisado.get(r.criterion_result_id)
     return por_criterio
 
 
-def _veredito_humano(revisoes: list[Revisao], coleta_id: int | None) -> Revisao | None:
-    """O veredito humano mais recente PARA ESTA COLETA (o portal muda entre coletas)."""
-    return next((r for r in reversed(revisoes) if r.status and r.crawl_run_id == coleta_id), None)
+def _veredito_humano(
+    revisoes: list[Revisao], resultado: CriterionResult, coleta_id: int | None
+) -> Revisao | None:
+    """O veredito humano que vale para este resultado (o mais recente que se aplica).
+
+    Vale se foi dado NESTA coleta, ou se a máquina continua dizendo o mesmo que
+    dizia quando a pessoa revisou (o portal não mudou naquilo que a regra enxerga).
+    Se a máquina mudar de conclusão numa coleta nova, o veredito deixa de valer e
+    o item volta para a fila: algo mudou e merece um novo olhar humano.
+    """
+    return next(
+        (
+            r
+            for r in reversed(revisoes)
+            if r.status
+            and (
+                r.crawl_run_id == coleta_id
+                or getattr(r, "status_maquina_revisado", None) == resultado.status
+            )
+        ),
+        None,
+    )
 
 
 def _revisao(r: Revisao | None) -> e.Revisao | None:
@@ -103,7 +132,7 @@ def _nota_revisada(
     nenhum foi."""
     itens, revisados = [], 0
     for r in run.results:
-        humano = _veredito_humano(revisoes.get(r.criterion.codigo, []), run.crawl_run_id)
+        humano = _veredito_humano(revisoes.get(r.criterion.codigo, []), r, run.crawl_run_id)
         revisados += humano is not None
         status = StatusConformidade(humano.status if humano else r.status)
         itens.append((r.criterion, Veredito(status, float(r.confianca or 0), "")))
@@ -130,7 +159,10 @@ def _ultima_avaliacao(session: Session, entity_id: int) -> EvaluationRun | None:
         .outerjoin(CrawlRun, CrawlRun.id == EvaluationRun.crawl_run_id)
         .where(EvaluationRun.entity_id == entity_id, EvaluationRun.status.in_(CONCLUIDAS))
         .order_by(*ordem_mais_recente())
-        .options(selectinload(EvaluationRun.scores))
+        .options(
+            selectinload(EvaluationRun.scores),
+            selectinload(EvaluationRun.results).selectinload(CriterionResult.criterion),
+        )
         .limit(1)
     )
 
@@ -139,10 +171,11 @@ def _resumo(session: Session, run: EvaluationRun | None) -> e.ResumoAvaliacao | 
     if run is None:
         return None
     coleta = session.get(CrawlRun, run.crawl_run_id) if run.crawl_run_id else None
-    pendentes = session.scalar(
-        select(func.count())
-        .select_from(CriterionResult)
-        .where(CriterionResult.evaluation_run_id == run.id, CriterionResult.revisao_humana)
+    revisoes = _revisoes(session, run.entity_id)
+    pendentes = sum(
+        r.revisao_humana
+        and _veredito_humano(revisoes.get(r.criterion.codigo, []), r, run.crawl_run_id) is None
+        for r in run.results
     )
     return e.ResumoAvaliacao(
         id=run.id,
@@ -151,8 +184,8 @@ def _resumo(session: Session, run: EvaluationRun | None) -> e.ResumoAvaliacao | 
         coletado_em=coleta.started_at if coleta else None,
         versao_regras=run.versao_regras,
         nota=_nota(_geral(run)),
-        nota_revisada=_nota_revisada(run, _revisoes(session, run.entity_id))[0],
-        revisoes_pendentes=pendentes or 0,
+        nota_revisada=_nota_revisada(run, revisoes)[0],
+        revisoes_pendentes=pendentes,
     )
 
 
@@ -197,8 +230,8 @@ def detalhar_entidade(session: Session, slug: str) -> e.Entidade | None:
 
 
 def _status_final(r: CriterionResult, revisoes: dict, coleta_id: int | None) -> str:
-    """Veredito humano desta coleta, se houver; senão o status da máquina."""
-    humano = _veredito_humano(revisoes.get(r.criterion.codigo, []), coleta_id)
+    """Veredito humano que se aplica, se houver; senão o status da máquina."""
+    humano = _veredito_humano(revisoes.get(r.criterion.codigo, []), r, coleta_id)
     return humano.status if humano else r.status
 
 
@@ -261,6 +294,9 @@ def detalhar_avaliacao(session: Session, run_id: int) -> e.Avaliacao | None:
                 for ev in sorted(r.evidences, key=lambda ev: ev.id)
             ],
             revisao=_revisao((revisoes.get(r.criterion.codigo) or [None])[-1]),
+            veredito_humano=_revisao(
+                _veredito_humano(revisoes.get(r.criterion.codigo, []), r, run.crawl_run_id)
+            ),
             status_final=_status_final(r, revisoes, run.crawl_run_id),
         )
         for r in sorted(run.results, key=lambda r: _ordem(r.criterion.codigo))
@@ -438,7 +474,7 @@ def fila_de_revisao(session: Session) -> list[e.ItemRevisao]:
         )
         revisoes = _revisoes(session, ent.id)
         for r in sorted(resultados, key=lambda r: _ordem(r.criterion.codigo)):
-            if _veredito_humano(revisoes.get(r.criterion.codigo, []), run.crawl_run_id):
+            if _veredito_humano(revisoes.get(r.criterion.codigo, []), r, run.crawl_run_id):
                 continue  # já decidido por uma pessoa nesta coleta
             ev = min(r.evidences, key=lambda ev: ev.id) if r.evidences else None
             itens.append(

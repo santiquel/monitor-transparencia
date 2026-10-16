@@ -114,7 +114,10 @@ class Resultado(BaseModel):
     llm_modelo: str | None
     evidencias: list[Evidencia]
     revisao: Revisao | None = None  # a mais recente para o critério nesta entidade
-    # Veredito humano desta coleta, se houver; senão o da máquina.
+    # O veredito humano que se aplica a ESTE resultado: dado nesta coleta, ou herdado
+    # de uma anterior enquanto a máquina mantiver a mesma conclusão.
+    veredito_humano: Revisao | None = None
+    # Veredito humano que se aplica, se houver; senão o da máquina.
     status_final: str
 
 
