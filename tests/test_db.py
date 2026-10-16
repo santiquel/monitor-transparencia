@@ -10,11 +10,9 @@ Sem a variável, os testes são pulados (skip).
 import os
 
 import pytest
-from alembic import command
 from alembic.autogenerate import compare_metadata
-from alembic.config import Config
 from alembic.migration import MigrationContext
-from sqlalchemy import create_engine, func, select, text
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from transparencia.catalog.loader import carregar_catalogo, carregar_entidades
@@ -39,28 +37,6 @@ DIFERENCAS_RELEVANTES = {
     "add_fk",
     "remove_fk",
 }
-
-
-@pytest.fixture(scope="module")
-def engine(monkeypatch_module):
-    monkeypatch_module.setenv("DATABASE_URL", URL)
-    get_settings.cache_clear()
-    eng = create_engine(URL)
-    with eng.begin() as conn:  # banco limpo
-        conn.execute(text("DROP SCHEMA public CASCADE; CREATE SCHEMA public;"))
-    cfg = Config(str(PROJECT_ROOT / "alembic.ini"))
-    cfg.set_main_option("script_location", str(PROJECT_ROOT / "migrations"))
-    command.upgrade(cfg, "head")
-    yield eng
-    eng.dispose()
-    get_settings.cache_clear()
-
-
-@pytest.fixture(scope="module")
-def monkeypatch_module():
-    mp = pytest.MonkeyPatch()
-    yield mp
-    mp.undo()
 
 
 def _ops(diffs):

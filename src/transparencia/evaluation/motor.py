@@ -68,6 +68,16 @@ class ResultadoAvaliacao:
     veredito: Veredito
 
 
+def ordem_mais_recente():
+    """Avaliação "mais recente" = da coleta mais recente; empate = avaliada por último.
+
+    Uso: `select(EvaluationRun).outerjoin(CrawlRun, ...).order_by(*ordem_mais_recente())`.
+    Ordenar só pela data da avaliação falharia após um reprocessamento: reavaliar
+    hoje uma coleta de semanas atrás a tornaria a "mais recente".
+    """
+    return (CrawlRun.started_at.desc().nulls_last(), EvaluationRun.started_at.desc())
+
+
 def ultima_coleta(session: Session, entity: Entity) -> CrawlRun | None:
     return session.scalar(
         select(CrawlRun)

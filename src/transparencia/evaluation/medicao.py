@@ -34,6 +34,7 @@ from transparencia.db.models import (
     StatusConformidade,
     StatusExecucao,
 )
+from transparencia.evaluation.motor import ordem_mais_recente
 
 ROTULOS_VALIDOS = ("ATENDE", "ATENDE_PARCIALMENTE", "NAO_ATENDE")
 NAO_SEI = "NAO_SEI"
@@ -235,6 +236,7 @@ def escolher_avaliacoes(
     consulta = (
         select(EvaluationRun, Entity.slug)
         .join(Entity, Entity.id == EvaluationRun.entity_id)
+        .outerjoin(CrawlRun, CrawlRun.id == EvaluationRun.crawl_run_id)
         .options(
             selectinload(EvaluationRun.results).selectinload(CriterionResult.criterion),
             selectinload(EvaluationRun.results).selectinload(CriterionResult.evidences),
@@ -248,7 +250,7 @@ def escolher_avaliacoes(
             EvaluationRun.status.in_([StatusExecucao.SUCESSO, StatusExecucao.PARCIAL]),
         )
     escolhidas: dict[str, EvaluationRun] = {}
-    for run, slug in session.execute(consulta.order_by(EvaluationRun.started_at.desc())):
+    for run, slug in session.execute(consulta.order_by(*ordem_mais_recente())):
         escolhidas.setdefault(slug, run)  # a primeira de cada entidade é a mais recente
     return escolhidas
 

@@ -262,6 +262,9 @@ def avaliar(
                 console.print(f"[red]{slug}[/red] não está no banco.")
                 continue
             crawl = session.get(CrawlRun, coleta) if coleta else None
+            if crawl is not None and crawl.entity_id != entity.id:
+                console.print(f"[red]A coleta {coleta} não é de {slug}: pulando.[/red]")
+                continue
             run, resultados = executar_avaliacao(session, entity, regras, versao, crawl, juiz=juiz)
             session.commit()
 
@@ -281,6 +284,76 @@ def avaliar(
             console.print(tabela)
             if run.custo_llm_usd:
                 console.print(f"Custo de IA nesta avaliação: US$ {run.custo_llm_usd:.5f}")
+
+
+@app.command("reprocessar")
+def reprocessar(
+    slugs: Annotated[list[str] | None, typer.Argument(help="Slugs (padrão: todas)")] = None,
+) -> None:
+    """Reavalia, com as regras ATUAIS, toda coleta que já foi avaliada antes.
+
+    Não acessa os sites: usa os snapshots. Serve para o histórico comparar coletas
+    com a mesma régua depois de uma mudança nas regras. É idempotente (pula a
+    coleta que já tem avaliação desta versão) e não apaga nada: as avaliações
+    antigas continuam no banco (histórico append-only), com origem 'manual'.
+    """
+    from sqlalchemy import select
+
+    from transparencia.db.models import CatalogVersion, CrawlRun, Entity, EvaluationRun
+    from transparencia.db.session import session_scope
+    from transparencia.evaluation.motor import executar_avaliacao, versao_regua
+    from transparencia.evaluation.regras import carregar_regras
+
+    s = get_settings()
+    regras = carregar_regras(s.evaluation_rules_path)
+    versao_atual = versao_regua(regras)
+    hash_catalogo = carregar_catalogo(s.criteria_catalog_path).content_hash()
+    feitas = puladas = 0
+    with session_scope() as session:
+        catalogo = session.scalar(
+            select(CatalogVersion).where(CatalogVersion.content_hash == hash_catalogo)
+        )
+        consulta = select(Entity).where(Entity.ativo.is_(True))
+        if slugs:
+            consulta = select(Entity).where(Entity.slug.in_(slugs))
+        for entity in session.scalars(consulta.order_by(Entity.slug)).all():
+            avaliacoes = session.scalars(
+                select(EvaluationRun).where(
+                    EvaluationRun.entity_id == entity.id, EvaluationRun.crawl_run_id.is_not(None)
+                )
+            ).all()
+            coletas = sorted({a.crawl_run_id for a in avaliacoes})
+            atuais = {a.crawl_run_id for a in avaliacoes if a.versao_regras == versao_atual}
+            for coleta_id in coletas:
+                if coleta_id in atuais:
+                    puladas += 1
+                    continue
+                run, _ = executar_avaliacao(
+                    session,
+                    entity,
+                    regras,
+                    catalogo,
+                    session.get(CrawlRun, coleta_id),
+                    origem="reprocessamento",
+                )
+                session.commit()
+                feitas += 1
+                console.print(f"{entity.slug}: coleta {coleta_id} -> avaliação {run.id}")
+    console.print(
+        f"[green]OK[/green] {feitas} reavaliadas com {versao_atual}; {puladas} já estavam nela."
+    )
+
+
+@app.command("api")
+def api(
+    porta: Annotated[int, typer.Option(help="Porta HTTP")] = 8000,
+    host: Annotated[str, typer.Option(help="0.0.0.0 para aceitar conexões de fora")] = "127.0.0.1",
+    recarregar: Annotated[bool, typer.Option(help="Reinicia ao salvar código (dev)")] = False,
+) -> None:
+    """Sobe a API HTTP (documentação interativa em http://localhost:PORTA/docs)."""
+    import uvicorn
+
+    uvicorn.run("transparencia.api.app:app", host=host, port=porta, reload=recarregar)
 
 
 golden_app = typer.Typer(help="Golden set: rótulos manuais para medir os avaliadores.")
