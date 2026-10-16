@@ -75,6 +75,6 @@ tests/                    testes (unitários + integração com PostgreSQL no CI
 
 - [x] Fase 1 — Fundação: catálogo, banco, CI
 - [x] Fase 2 — Coleta
-- [x] Fase 3 — Avaliação (regras + IA), pontuação e medição (kappa 0,43; 0 acusações falsas)
+- [x] Fase 3 — Avaliação (regras + IA), pontuação e medição (kappa 0,46; 0 acusações falsas)
 - [x] Fase 4 — API, dashboard, revisão humana, fila/worker e agendamento
 - [ ] Fase 5 — Documentação técnica final
