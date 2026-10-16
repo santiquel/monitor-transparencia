@@ -65,13 +65,13 @@ def _juiz(tmp_path, resposta):
     return juiz, cliente
 
 
-def _resposta(citacao, url=PORTAL + "lgpd", status="ATENDE"):
+def _resposta(citacao, trecho=1, status="ATENDE"):
     return {
         "status": status,
         "confianca": 0.95,
         "justificativa": "ok",
         "citacao": citacao,
-        "url": url,
+        "trecho": trecho,
     }
 
 
@@ -97,6 +97,24 @@ def test_citacao_inventada_e_descartada(tmp_path, snap):
     assert "citação não foi encontrada" in v.justificativa
 
 
+def test_trecho_inexistente_e_descartado(tmp_path, snap):
+    juiz, _ = _juiz(tmp_path, _resposta("Encarregado pelo tratamento", trecho=7))  # só há 1
+    v = juiz.avaliar("18.1", REGRA, "x", snap, DA_REGRA)
+    assert v.status == S.NAO_AVALIADO and "n=7" in v.justificativa
+
+
+def test_nao_atende_da_ia_vira_revisao_humana(tmp_path, snap):
+    """Política assimétrica: a IA não acusa sozinha, mesmo com citação válida."""
+    juiz, _ = _juiz(
+        tmp_path, _resposta("Encarregado pelo tratamento de dados pessoais", status="NAO_ATENDE")
+    )
+    v = juiz.avaliar("18.1", REGRA, "x", snap, DA_REGRA)
+    assert v.status == S.NAO_AVALIADO and v.revisao_humana
+    assert "Acusação exige revisão humana" in v.justificativa
+    assert v.evidencias[0].trecho.startswith("Encarregado")  # a citação fica para o revisor
+    assert v.detalhes["ia"]["status"] == "NAO_ATENDE"
+
+
 def test_inconclusivo_nao_vira_nao_atende(tmp_path, snap):
     juiz, _ = _juiz(tmp_path, _resposta("Maria da Silva", status="INCONCLUSIVO"))
     assert juiz.avaliar("18.1", REGRA, "x", snap, DA_REGRA).status == S.NAO_AVALIADO
@@ -119,8 +137,8 @@ def test_so_entra_na_zona_cinzenta(tmp_path):
 
 def test_citacao_confere_ignora_espacos_e_caixa(snap):
     pagina = snap.paginas[0]
-    assert citacao_confere("encarregado   PELO tratamento", pagina)
-    assert not citacao_confere("Maria", pagina)  # curta demais para servir de prova
+    assert citacao_confere("encarregado   PELO tratamento", pagina.texto)
+    assert not citacao_confere("Maria", pagina.texto)  # curta demais para servir de prova
 
 
 # ------------------------------------------------------------- Ollama
@@ -159,7 +177,7 @@ def test_ollama_usa_o_mesmo_fluxo_e_custo_zero(tmp_path, snap):
     assert v.custo_llm_usd == 0.0  # modelo local: fora da tabela de preços
     assert v.detalhes["llm_provedor"] == "ollama"
     pedido = pedidos[0]
-    assert pedido["format"]["properties"].keys() >= {"status", "citacao", "url"}  # esquema JSON
+    assert pedido["format"]["properties"].keys() >= {"status", "citacao", "trecho"}  # esquema JSON
     assert pedido["options"]["temperature"] == 0
     assert pedido["options"]["num_ctx"] >= 8192  # sem isso o Ollama corta os trechos
     assert "Maria da Silva" in pedido["messages"][1]["content"]

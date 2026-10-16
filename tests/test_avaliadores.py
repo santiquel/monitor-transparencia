@@ -213,6 +213,58 @@ def test_4_6_ignora_data_do_cabecalho_e_usa_celulas(m):
     assert v.status == S.ATENDE and v.evidencias[0].metadados["dias"] == 24
 
 
+# Evidência negativa exige fonte completa (achados da 1ª medição contra o golden set)
+
+
+def test_4_6_data_antiga_em_tabela_nao_prova_atraso(m):
+    tabela = "<table><tr><th>Data</th><th>Valor</th></tr><tr><td>01/03/2025</td><td>1</td></tr>"
+    snap = m.pagina(PORTAL + "despesas", tabela + "</table>" + TEXTO, texto_link="Despesas")
+    v = _avaliar("4.6", snap.snapshot())
+    assert v.status == S.NAO_AVALIADO and v.revisao_humana
+
+
+def test_4_6_atraso_declarado_pelo_portal_e_nao_atende(m):
+    corpo = "<p>Dados atualizados em 01/03/2025.</p>"
+    snap = m.pagina(PORTAL + "despesas", corpo + TEXTO, texto_link="Despesas").snapshot()
+    assert _avaliar("4.6", snap).status == S.NAO_ATENDE
+
+
+def test_4_5_sem_exportacao_visivel_nao_acusa(m):
+    snap = m.pagina(PORTAL + "despesas", TEXTO, texto_link="Despesas").snapshot()
+    v = _avaliar("4.5", snap)
+    assert v.status == S.NAO_AVALIADO and "ausência não está comprovada" in v.justificativa
+
+
+def test_20_2_atraso_visto_em_lista_parcial_nao_acusa(m):
+    lista = "<ul><li>RREO - 6º BIMESTRE 2025</li><li>RREO - 3º BIMESTRE 2025</li></ul>"
+    snap = m.pagina(PORTAL + "lrf", lista + TEXTO, texto_link="LRF").snapshot()
+    v = _avaliar("20.2", snap)  # exigível em 14/10/2026: 4º/2026 -> 4 bimestres antes
+    assert v.status == S.NAO_AVALIADO and v.evidencias[0].metadados["atraso_bimestres"] == 4
+
+
+def test_7_1_seis_de_sete_campos_e_parcial(m):
+    cab = ["Número", "Modalidade", "Objeto", "Data", "Valor", "Situação"]  # sem vencedor
+    tabela = "<table><tr>" + "".join(f"<th>{c}</th>" for c in cab) + "</tr></table>"
+    snap = m.pagina(PORTAL + "licitacoes", tabela + TEXTO, texto_link="Licitações").snapshot()
+    v = _avaliar("7.1", snap)
+    assert v.status == S.ATENDE_PARCIALMENTE and "vencedor" in v.justificativa
+
+
+def test_18_1_ignora_cargo_e_pagina_do_fornecedor(m):
+    cargo = "<p>Encarregado de obras: João, telefone (21) 2222-3333.</p>"
+    fornecedor = "<p>Encarregado pelo tratamento de dados pessoais: dpo@fornecedor.com.br</p>"
+    snap = (
+        m.pagina(PORTAL + "servidores", cargo + TEXTO, texto_link="Servidores")
+        .pagina("https://www.fornecedor.com.br/privacidade", fornecedor + TEXTO)
+        .snapshot()
+    )
+    assert _avaliar("18.1", snap).status == S.NAO_ATENDE  # nenhuma menção válida
+
+    m.pagina(SITE + "lgpd", fornecedor.replace("fornecedor.com.br", "exemplo.rj.gov.br") + TEXTO)
+    v = _avaliar("18.1", m.snapshot())
+    assert v.status == S.ATENDE and v.evidencias[0].url == SITE + "lgpd"
+
+
 # ------------------------------------------------------------ semântica
 
 

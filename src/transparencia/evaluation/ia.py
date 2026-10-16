@@ -16,9 +16,13 @@ Como funciona:
 3. **Validação anti-alucinação:** a citação precisa existir, literalmente, no
    texto da página indicada. Se não existir, o resultado vira NAO_AVALIADO com
    revisão humana: a IA nunca decide sem prova verificável.
-4. **Cache:** a chave é (critério, versão da régua, versão do prompt, modelo,
+4. **Assimetria:** a IA pode confirmar ATENDE/ATENDE_PARCIALMENTE, mas um
+   NAO_ATENDE vindo dela vira NAO_AVALIADO + revisão humana. A citação prova que
+   o trecho existe, não que o raciocínio está certo; e acusar um órgão público
+   não pode depender só de um modelo (achado da medição contra o golden set).
+5. **Cache:** a chave é (critério, versão da régua, versão do prompt, modelo,
    trechos). Página igual na coleta seguinte = resposta reaproveitada, custo zero.
-5. **Custo:** tokens × preço, somado em evaluation_runs.custo_llm_usd.
+6. **Custo:** tokens × preço, somado em evaluation_runs.custo_llm_usd.
 """
 
 import hashlib
@@ -37,7 +41,9 @@ from transparencia.evaluation.sinais import evidencia
 from transparencia.evaluation.snapshot import PaginaSnapshot, Snapshot, trecho
 from transparencia.evaluation.veredito import Veredito, nao_avaliado
 
-VERSAO_PROMPT = "1"
+# Versão 2: citação aponta o NÚMERO do trecho (modelos pequenos erravam a URL) e
+# a ausência de menção passa a ser explicitamente INCONCLUSIVO.
+VERSAO_PROMPT = "2"
 
 # US$ por milhão de tokens (entrada, saída). Fonte: tabela de preços da Anthropic.
 # Modelo fora da tabela (ex.: os locais do Ollama) tem custo zero.
@@ -59,11 +65,15 @@ páginas fornecidos. Não use conhecimento externo sobre a prefeitura.
 Responda pela rubrica do critério:
 - ATENDE / ATENDE_PARCIALMENTE / NAO_ATENDE conforme a rubrica.
 - INCONCLUSIVO se os trechos não bastam para decidir (é melhor que adivinhar).
+- Siga a rubrica ao pé da letra, inclusive o que ela diz que NÃO conta.
+- Os trechos são só uma parte do portal: se eles não mencionam algo, isso NÃO
+  prova que o portal não tem. Ausência de menção = INCONCLUSIVO.
 
 A "citacao" deve ser copiada LITERALMENTE de um dos trechos (mesmas palavras e
-acentos, até 300 caracteres) e a "url" deve ser a do trecho de onde ela veio.
-Ela será conferida automaticamente; uma citação que não exista no trecho anula
-a resposta. Em "justificativa", explique em uma ou duas frases, em português.
+acentos, até 300 caracteres) e "trecho" deve ser o número n do trecho de onde
+ela veio. A citação será conferida automaticamente; uma citação que não exista
+naquele trecho anula a resposta. Em "justificativa", explique em uma ou duas
+frases, em português.
 """
 
 
@@ -72,7 +82,7 @@ class RespostaIA(BaseModel):
     confianca: float = Field(ge=0, le=1)
     justificativa: str
     citacao: str
-    url: str
+    trecho: int = Field(description="Número n do trecho de onde a citação foi copiada")
 
 
 # ------------------------------------------------------------- trechos
@@ -112,10 +122,10 @@ def _normalizar(texto: str) -> str:
     return " ".join(sem_acento(texto).split())
 
 
-def citacao_confere(citacao: str, pagina: PaginaSnapshot) -> bool:
-    """A citação existe literalmente no texto da página? (ignora espaços e caixa)."""
+def citacao_confere(citacao: str, texto: str) -> bool:
+    """A citação existe literalmente no texto? (ignora espaços, acentos e caixa)."""
     c = _normalizar(citacao.strip(" .\"'…"))
-    return len(c) >= 10 and c in _normalizar(pagina.texto)
+    return len(c) >= 10 and c in _normalizar(texto)
 
 
 # ---------------------------------------------------------- provedores
@@ -283,15 +293,23 @@ class JuizIA:
             "trechos_enviados": len(trechos),
             "cache": custo == 0.0,
         }
-        pagina = next((p for p, _ in trechos if p.url == r.url), None)
+        # A citação é conferida contra o trecho ENVIADO, não contra a página inteira:
+        # o modelo só pode provar com o que de fato viu.
+        pagina, texto = trechos[r.trecho - 1] if 1 <= r.trecho <= len(trechos) else (None, "")
 
         if r.status == "INCONCLUSIVO":
             v = nao_avaliado(f"IA inconclusiva: {r.justificativa}", da_regra.evidencias, **detalhes)
-        elif pagina is None or not citacao_confere(r.citacao, pagina):
+        elif pagina is None or not citacao_confere(r.citacao, texto):
             v = nao_avaliado(
-                "Resposta da IA descartada: a citação não foi encontrada na página indicada "
-                f"({r.url}). Requer revisão humana.",
+                "Resposta da IA descartada: a citação não foi encontrada no trecho indicado "
+                f"(n={r.trecho}). Requer revisão humana.",
                 da_regra.evidencias,
+                **detalhes,
+            )
+        elif r.status == "NAO_ATENDE":
+            v = nao_avaliado(
+                f"[IA] Indicou NAO_ATENDE: {r.justificativa} Acusação exige revisão humana.",
+                [evidencia(pagina, "texto", "Citação verificada no snapshot", trecho=r.citacao)],
                 **detalhes,
             )
         else:

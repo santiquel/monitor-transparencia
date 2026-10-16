@@ -46,7 +46,10 @@ from transparencia.settings import get_settings
 
 # Versão do código dos avaliadores. Junto com a versão da rubrica, identifica a
 # "régua" exata usada em cada avaliação (evaluation_runs.versao_regras).
-VERSAO_MOTOR = "0.1"
+# 0.2: correções da 1ª medição contra o golden set (evidência negativa exige fonte
+# completa em 4.5/4.6/20.2; 7.1 exige os 7 campos; 18.1 com contexto LGPD e domínio
+# da entidade; IA não acusa sozinha).
+VERSAO_MOTOR = "0.2"
 
 
 def versao_regua(regras: RegrasAvaliacao) -> str:

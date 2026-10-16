@@ -9,6 +9,12 @@ Princípios:
 - **Página certa, dado invisível = zona cinzenta.** Ex.: a página de despesas
   existe, mas os dados só aparecem depois de preencher um formulário. Isso não
   prova que o portal falha: vira NAO_AVALIADO com revisão humana (ou IA, 3.3).
+- **Evidência positiva basta; negativa exige fonte completa.** Achar um dado
+  recente prova atualização; achar só dados antigos NÃO prova atraso, porque o
+  snapshot vê parte do portal (o resto fica atrás de consultas). Afirmações
+  negativas sobre qualidade (sem exportação, desatualizado, bimestres em atraso)
+  só viram NAO_ATENDE com uma fonte que declara o todo; senão, NAO_AVALIADO com
+  revisão. As 3 acusações falsas da 1ª medição contra o golden set vinham daí.
 - **Confiança é declarada, não calculada por mágica:** cada regra diz o quanto
   confia no próprio sinal (ex.: link "Transparência" no topo = 0,8, porque a
   "visibilidade" é inferida da estrutura do HTML, não vista na tela).
@@ -18,7 +24,7 @@ import re
 from collections.abc import Callable
 from datetime import date, timedelta
 
-from transparencia.collector.urls import host, resolver
+from transparencia.collector.urls import dominio_base, host, resolver
 from transparencia.collector.vocabulario import sem_acento
 from transparencia.db.models import StatusConformidade as S
 from transparencia.evaluation import sinais
@@ -471,8 +477,8 @@ def relacao_licitacoes(snap: Snapshot) -> Veredito:
         seletor=seletor_css(tabela),
         campos=sorted(campos),
     )
-    if len(campos) >= 6:
-        return Veredito(S.ATENDE, 0.75, f"Lista de licitações com {len(campos)} de 7 campos.", [ev])
+    if campos == set(CAMPOS_LICITACAO):  # a rubrica pede todos, inclusive o vencedor
+        return Veredito(S.ATENDE, 0.75, "Lista de licitações com os 7 campos.", [ev])
     faltam = sorted(set(CAMPOS_LICITACAO) - campos)
     return Veredito(
         S.ATENDE_PARCIALMENTE, 0.7, f"Lista de licitações sem: {', '.join(faltam)}.", [ev]
@@ -503,13 +509,14 @@ def exportacao_despesa(snap: Snapshot) -> Veredito:
     if len(formatos) >= 2 and abertos:
         return Veredito(S.ATENDE, 0.8, f"Exportação em {', '.join(sorted(formatos))}.", evs)
     if formatos:
+        # "Só um formato" também é afirmação negativa sobre o que não se viu: revisão.
         return Veredito(
-            S.ATENDE_PARCIALMENTE, 0.7, f"Exportação só em {', '.join(sorted(formatos))}.", evs
+            S.ATENDE_PARCIALMENTE, 0.6, f"Exportação só em {', '.join(sorted(formatos))}.", evs
         )
-    return Veredito(
-        S.NAO_ATENDE,
-        0.6,
-        f"Nenhuma opção de exportação nas {len(paginas)} páginas de despesa.",
+    return nao_avaliado(
+        f"Nenhuma opção de exportação nas {len(paginas)} páginas de despesa coletadas. "
+        "Os botões de exportação costumam aparecer só depois da consulta: a ausência não "
+        "está comprovada.",
         [evidencia(p, "metadado", "Página de despesa sem exportação") for p in paginas[:3]],
     )
 
@@ -675,6 +682,7 @@ def despesa_atualizada(snap: Snapshot) -> Veredito:
         return _dados_invisiveis(paginas[0], "despesas (sem datas visíveis)")
     d, p, origem = max(validas, key=lambda c: c[0])
     dias = (hoje - d).days
+    declarada = origem == "'atualizado em'"  # o próprio portal declara a data
     ev = evidencia(
         p,
         "texto",
@@ -686,9 +694,19 @@ def despesa_atualizada(snap: Snapshot) -> Veredito:
         return Veredito(S.ATENDE, 0.75, f"Dado de despesa de {dias} dias antes da coleta.", [ev])
     if dias <= 90:
         return Veredito(
-            S.ATENDE_PARCIALMENTE, 0.7, f"Dado de despesa mais recente: {dias} dias.", [ev]
+            S.ATENDE_PARCIALMENTE,
+            0.7 if declarada else 0.6,
+            f"Dado de despesa mais recente: {dias} dias.",
+            [ev],
         )
-    return Veredito(S.NAO_ATENDE, 0.7, f"Dado de despesa mais recente: {dias} dias.", [ev])
+    if declarada:
+        return Veredito(S.NAO_ATENDE, 0.7, f"Portal declara atualização há {dias} dias.", [ev])
+    return nao_avaliado(
+        f"A data mais recente vista em tabelas de despesa é de {dias} dias atrás, mas "
+        "datas antigas no snapshot não provam atraso: os dados atuais podem estar atrás "
+        "de uma consulta não capturada.",
+        [ev],
+    )
 
 
 RE_BIMESTRE = re.compile(r"\b([1-6])\s*[o.]?\s*bim")
@@ -742,10 +760,15 @@ def rreo_atualizado(snap: Snapshot) -> Veredito:
         )
     if atraso == 1:
         return Veredito(
-            S.ATENDE_PARCIALMENTE, 0.75, f"RREO com 1 bimestre de atraso ({bim}º/{ano}).", [ev]
+            S.ATENDE_PARCIALMENTE, 0.6, f"RREO com 1 bimestre de atraso ({bim}º/{ano}).", [ev]
         )
-    return Veredito(
-        S.NAO_ATENDE, 0.75, f"RREO com {atraso} bimestres de atraso ({bim}º/{ano}).", [ev]
+    # Listas de relatórios costumam ser consultas filtradas por exercício ou paginadas
+    # (ex.: Betha mostrava só 2025). O mais recente VISTO não prova que não há outro.
+    return nao_avaliado(
+        f"O RREO mais recente visto no snapshot é o {bim}º bimestre de {ano} ({atraso} "
+        "bimestres antes do exigível), mas a lista pode estar filtrada por exercício ou "
+        "paginada: o atraso não está comprovado.",
+        [ev],
     )
 
 
@@ -795,24 +818,54 @@ def esic_simples(snap: Snapshot) -> Veredito:
 RE_ENCARREGADO = re.compile(r"encarregad[oa]|\bdpo\b|data protection officer")
 
 
+# "Encarregado" também é cargo (encarregado de obras, de turma): a menção só conta
+# perto de vocabulário de proteção de dados.
+RE_CONTEXTO_LGPD = re.compile(r"dados pessoais|protecao de dados|\blgpd\b|privacidade|tratamento")
+
+
+def _da_entidade(snap: Snapshot, p: PaginaSnapshot) -> bool:
+    """A página é da própria entidade (domínio do site ou host do portal)?
+
+    Exclui, por exemplo, a política de privacidade do FORNECEDOR do portal
+    (betha.com.br), que fala do encarregado da empresa, não da prefeitura.
+    """
+    hosts = {host(u) for u in (snap.url_site, snap.url_portal) if u}
+    bases = {dominio_base(h) for h in hosts if h.endswith(".gov.br")}
+    h = host(p.url)
+    return h in hosts or dominio_base(h) in bases
+
+
+def _mencoes_encarregado(snap: Snapshot) -> list[tuple[PaginaSnapshot, re.Match[str]]]:
+    mencoes = []
+    for p in snap.html:
+        if not _da_entidade(snap, p):
+            continue
+        for m in RE_ENCARREGADO.finditer(p.texto_busca):
+            contexto = p.texto_busca[max(0, m.start() - 300) : m.end() + 300]
+            if RE_CONTEXTO_LGPD.search(contexto):
+                mencoes.append((p, m))
+    return mencoes
+
+
 @avaliador("18.1")
 def encarregado_lgpd(snap: Snapshot) -> Veredito:
-    achados = snap.buscar(RE_ENCARREGADO)
-    if not achados:
+    mencoes = _mencoes_encarregado(snap)
+    if not mencoes:
         return _ausencia(snap, "Identificação do encarregado (LGPD)", snap.com_tema("lgpd") or None)
-    for p, _ in achados:
-        for m in RE_ENCARREGADO.finditer(p.texto_busca):
-            janela = trecho(p.texto, m.start(), m.end(), margem=250)
-            contato = RE_EMAIL.search(janela) or RE_TELEFONE.search(janela)
-            if contato:
-                return Veredito(
-                    S.ATENDE,
-                    0.7,
-                    "Menção ao encarregado com contato próximo (confirmar se identifica a pessoa).",
-                    [evidencia(p, "texto", "Encarregado e contato", trecho=janela)],
-                    detalhes={"zona_cinzenta": True},
-                )
-    p, t = achados[0]
+    for p, m in mencoes:
+        # Margem larga: em páginas de LGPD o contato costuma vir num parágrafo próprio.
+        janela = trecho(p.texto, m.start(), m.end(), margem=500)
+        contato = RE_EMAIL.search(janela) or RE_TELEFONE.search(janela)
+        if contato:
+            return Veredito(
+                S.ATENDE,
+                0.7,
+                "Menção ao encarregado com contato próximo (confirmar se identifica a pessoa).",
+                [evidencia(p, "texto", "Encarregado e contato", trecho=janela)],
+                detalhes={"zona_cinzenta": True},
+            )
+    p, m = mencoes[0]
+    t = trecho(p.texto, m.start(), m.end())
     return Veredito(
         S.ATENDE_PARCIALMENTE,
         0.6,
