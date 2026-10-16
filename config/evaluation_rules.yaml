@@ -1,0 +1,179 @@
+# =============================================================================
+# REGRAS DE AVALIAÇÃO DOS CRITÉRIOS DA PoC — "como avaliar"
+#
+# O catálogo (criteria_catalog.yaml) diz O QUE avaliar e vem da planilha oficial.
+# Este arquivo diz COMO avaliar, e é editado à mão. Para cada critério:
+#
+#   rubrica     o que conta como ATENDE / ATENDE_PARCIALMENTE / NAO_ATENDE.
+#               É a MESMA rubrica usada na rotulagem humana (golden set):
+#               humano e máquina julgam pela mesma régua.
+#   onde_olhar  dica para quem rotula (e para quem audita uma avaliação).
+#
+# A versão entra em evaluation_runs.versao_regras: mudou a régua, muda a versão,
+# e avaliações antigas continuam rastreáveis à régua com que foram feitas.
+#
+# Datas de referência (critérios de atualização): a avaliação usa a data em que
+# a COLETA foi feita, não a data em que a avaliação roda.
+# =============================================================================
+versao: "2026.10-poc1"
+
+criterios:
+  # --------------------------------------------------------------- Existência
+  "1.1":
+    rubrica:
+      ATENDE: Site oficial ou portal da transparência acessível (abre e mostra conteúdo).
+      NAO_ATENDE: Nem site nem portal acessíveis.
+    onde_olhar: Abra o site oficial e o portal cadastrados.
+
+  "1.2":
+    rubrica:
+      ATENDE: >-
+        Link ou botão "Transparência" / "Portal da Transparência" visível na página
+        inicial do site, sem precisar abrir menus (no topo, num banner ou num menu
+        principal já aberto).
+      ATENDE_PARCIALMENTE: >-
+        O link existe na página inicial, mas só aparece dentro de um menu suspenso
+        ou no rodapé.
+      NAO_ATENDE: Não há link para o portal na página inicial do site.
+    onde_olhar: Página inicial do SITE oficial (não do portal).
+
+  "1.3":
+    rubrica:
+      ATENDE: Campo de busca/pesquisa de conteúdo no site ou no portal.
+      NAO_ATENDE: Não há ferramenta de pesquisa.
+    onde_olhar: Topo do site e do portal (ícone de lupa, campo "Pesquisar"/"Buscar").
+
+  "2.9":
+    rubrica:
+      ATENDE: >-
+        Canal "Fale Conosco" (ou equivalente: Ouvidoria, Contato) com meio eletrônico
+        (formulário ou e-mail) ou telefone.
+      NAO_ATENDE: Não há canal de contato com o cidadão.
+    onde_olhar: Menu e rodapé do site; páginas "Fale Conosco", "Contato", "Ouvidoria".
+
+  # ----------------------------------------------------------- Acessibilidade
+  "16.2":
+    rubrica:
+      ATENDE: Opção de alto contraste no site ou no portal.
+      NAO_ATENDE: Não há opção de alto contraste.
+    onde_olhar: Barra de acessibilidade no topo (ícone de contraste, "Alto contraste").
+
+  "16.3":
+    rubrica:
+      ATENDE: Ferramenta para aumentar/diminuir a fonte (A+ / A-) no site ou no portal.
+      NAO_ATENDE: Não há ferramenta de redimensionamento de texto.
+    onde_olhar: Barra de acessibilidade no topo ("A+", "A-", "Aumentar fonte").
+
+  "16.4":
+    rubrica:
+      ATENDE: Símbolo de acessibilidade em destaque no site E no portal.
+      ATENDE_PARCIALMENTE: Símbolo em destaque em apenas um dos dois.
+      NAO_ATENDE: Nenhum dos dois tem o símbolo.
+    onde_olhar: >-
+      Topo das páginas iniciais do site e do portal (ícone de acessibilidade, link
+      "Acessibilidade", widget VLibras).
+
+  # ------------------------------------------------------- Exige navegação
+  "4.1":
+    rubrica:
+      ATENDE: >-
+        Consulta de despesas mostra o número do empenho e os valores empenhado,
+        liquidado e pago.
+      ATENDE_PARCIALMENTE: Há consulta de despesas, mas falta o número do empenho ou alguma das três fases.
+      NAO_ATENDE: Não há consulta de despesas.
+    onde_olhar: Portal → Despesas / Execução da despesa / Empenhos.
+
+  "5.1":
+    rubrica:
+      ATENDE: Lista de servidores com o NOME de cada um (e cargo/vínculo).
+      ATENDE_PARCIALMENTE: Lista de servidores sem nome (só matrícula, cargo ou totais).
+      NAO_ATENDE: Não há lista de servidores.
+    onde_olhar: Portal → Servidores / Pessoal / Recursos Humanos / Folha de pagamento.
+
+  "7.1":
+    rubrica:
+      ATENDE: >-
+        Lista de licitações com número, modalidade, objeto, data, valor e situação
+        (aberta, em andamento, suspensa, finalizada), indicando o vencedor.
+      ATENDE_PARCIALMENTE: Lista de licitações com parte desses campos.
+      NAO_ATENDE: Não há lista de licitações.
+    onde_olhar: Portal → Licitações / Compras.
+
+  # --------------------------------------------------- Dados estruturados
+  "4.5":
+    rubrica:
+      ATENDE: >-
+        Relatórios de despesa exportáveis em 2 ou mais formatos, sendo pelo menos um
+        aberto/legível por máquina (CSV, XLS/XLSX, ODS, JSON, XML).
+      ATENDE_PARCIALMENTE: Só um formato, ou só PDF.
+      NAO_ATENDE: Não há opção de exportar/baixar os dados de despesa.
+    onde_olhar: Página de consulta de despesas (botões "Exportar", "CSV", "Excel", "PDF").
+
+  "18.3":
+    rubrica:
+      ATENDE: >-
+        Dados abertos legíveis por máquina (API, CSV, JSON...) E página com as regras
+        de uso (licença, termos de uso ou política de dados abertos).
+      ATENDE_PARCIALMENTE: Há dados abertos, mas não há regras de uso (ou vice-versa).
+      NAO_ATENDE: Não há dados abertos.
+    onde_olhar: Portal → Dados Abertos / API.
+
+  # ------------------------------------------------------------ Documentos
+  "12.1":
+    rubrica:
+      ATENDE: RGF (Relatório de Gestão Fiscal) de 2025 ou 2026 publicado.
+      ATENDE_PARCIALMENTE: Só há RGF de anos anteriores a 2025.
+      NAO_ATENDE: Não há RGF publicado.
+    onde_olhar: Portal → Gestão fiscal / LRF / Relatórios fiscais.
+
+  "20.1":
+    rubrica:
+      ATENDE: RREO (Relatório Resumido da Execução Orçamentária) de 2025 ou 2026 publicado.
+      ATENDE_PARCIALMENTE: Só há RREO de anos anteriores a 2025.
+      NAO_ATENDE: Não há RREO publicado.
+    onde_olhar: Portal → Gestão fiscal / LRF / Relatórios fiscais.
+
+  "19.5":
+    rubrica:
+      ATENDE: LOA (Lei Orçamentária Anual) do exercício corrente (2026) publicada.
+      ATENDE_PARCIALMENTE: Só há LOA de exercícios anteriores.
+      NAO_ATENDE: Não há LOA publicada.
+    onde_olhar: Portal → Planejamento / Instrumentos de planejamento / LOA.
+
+  # ------------------------------------------------------------ Atualização
+  "4.6":
+    rubrica:
+      ATENDE: Dados de despesa com movimento/atualização de até 30 dias antes da coleta.
+      ATENDE_PARCIALMENTE: Dado mais recente entre 31 e 90 dias antes da coleta.
+      NAO_ATENDE: Dado mais recente com mais de 90 dias, ou sem data identificável.
+    onde_olhar: >-
+      Consulta de despesas: data do empenho/pagamento mais recente, ou
+      "Atualizado em".
+
+  "20.2":
+    rubrica:
+      ATENDE: >-
+        RREO do último bimestre exigível publicado (o RREO vence 30 dias após o fim do
+        bimestre; para coleta em 14/10/2026, o 4º bimestre de 2026, jul-ago).
+      ATENDE_PARCIALMENTE: Publicado o bimestre imediatamente anterior ao exigível.
+      NAO_ATENDE: RREO mais recente com dois ou mais bimestres de atraso, ou ausente.
+    onde_olhar: Lista de RREOs no portal (veja o período do mais recente).
+
+  # ------------------------------------------------- Interpretação semântica
+  "15.2":
+    rubrica:
+      ATENDE: >-
+        O pedido pelo e-SIC não exige itens que dificultem o acesso: envio de
+        documentos, assinatura reconhecida, declaração de responsabilidade ou
+        maioridade. Exigir cadastro prévio NÃO é dificuldade.
+      NAO_ATENDE: O e-SIC exige algum desses itens, ou não há e-SIC.
+    onde_olhar: Formulário/cadastro do e-SIC (próprio ou Fala.BR).
+
+  "18.1":
+    rubrica:
+      ATENDE: >-
+        Identifica o encarregado (DPO) pelo tratamento de dados pessoais E informa
+        canal de contato (e-mail e/ou telefone).
+      ATENDE_PARCIALMENTE: Só um dos dois (nome sem contato, ou contato sem identificar o encarregado).
+      NAO_ATENDE: Não há essa informação.
+    onde_olhar: Site/portal → LGPD / Privacidade / Proteção de dados / Encarregado.

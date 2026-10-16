@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     # Arquivos de configuração versionados no Git
     criteria_catalog_path: Path = PROJECT_ROOT / "config" / "criteria_catalog.yaml"
     entities_path: Path = PROJECT_ROOT / "config" / "entities.yaml"
+    evaluation_rules_path: Path = PROJECT_ROOT / "config" / "evaluation_rules.yaml"
+    # Rótulos manuais (gabarito) — versionados: fazem parte da metodologia
+    golden_path: Path = PROJECT_ROOT / "golden" / "golden_set.xlsx"
 
     # Onde ficam os snapshots coletados (HTML, PDFs, screenshots) — fora do Git
     data_dir: Path = PROJECT_ROOT / "data"

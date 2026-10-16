@@ -175,5 +175,123 @@ def coletar(
     console.print(resumo)
 
 
+CORES_STATUS = {
+    "ATENDE": "green",
+    "ATENDE_PARCIALMENTE": "yellow",
+    "NAO_ATENDE": "red",
+    "NAO_AVALIADO": "bright_black",
+    "NAO_APLICAVEL": "blue",
+}
+
+
+@app.command("avaliar")
+def avaliar(
+    slugs: Annotated[list[str] | None, typer.Argument(help="Slugs das entidades")] = None,
+    todas: Annotated[
+        bool, typer.Option("--todas", help="Avalia todas as entidades ativas")
+    ] = False,
+    coleta: Annotated[
+        int | None, typer.Option(help="Id da coleta (padrão: a mais recente concluída)")
+    ] = None,
+    sem_ia: Annotated[bool, typer.Option(help="Só regras determinísticas (sem Claude)")] = False,
+) -> None:
+    """Avalia os critérios da PoC sobre a coleta mais recente (sem acessar o site)."""
+    from sqlalchemy import select
+
+    from transparencia.db.models import CatalogVersion, CrawlRun, Entity
+    from transparencia.db.session import session_scope
+    from transparencia.evaluation.motor import executar_avaliacao
+    from transparencia.evaluation.regras import carregar_regras
+
+    s = get_settings()
+    regras = carregar_regras(s.evaluation_rules_path)
+    juiz = None
+    if not sem_ia and s.anthropic_api_key:
+        import anthropic
+
+        from transparencia.evaluation.ia import JuizIA
+
+        juiz = JuizIA(
+            anthropic.Anthropic(api_key=s.anthropic_api_key),
+            s.llm_model,
+            s.data_dir / "cache_llm",
+            regras.versao,
+        )
+    elif not sem_ia:
+        console.print("[yellow]ANTHROPIC_API_KEY ausente: avaliando só com regras.[/yellow]")
+    hash_catalogo = carregar_catalogo(s.criteria_catalog_path).content_hash()
+    with session_scope() as session:
+        versao = session.scalar(
+            select(CatalogVersion).where(CatalogVersion.content_hash == hash_catalogo)
+        )
+        if versao is None:
+            console.print("[red]Catálogo atual não está no banco: rode `transparencia seed`.[/red]")
+            raise typer.Exit(1)
+        if todas:
+            slugs = list(session.scalars(select(Entity.slug).where(Entity.ativo.is_(True))))
+        if not slugs:
+            raise typer.BadParameter("informe ao menos um slug ou use --todas")
+
+        for slug in slugs:
+            entity = session.scalar(select(Entity).where(Entity.slug == slug))
+            if entity is None:
+                console.print(f"[red]{slug}[/red] não está no banco.")
+                continue
+            crawl = session.get(CrawlRun, coleta) if coleta else None
+            run, resultados = executar_avaliacao(session, entity, regras, versao, crawl, juiz=juiz)
+            session.commit()
+
+            tabela = Table(title=f"{entity.nome} — avaliação {run.id} (coleta {run.crawl_run_id})")
+            for col in ("Critério", "Status", "Conf.", "Revisar", "Justificativa"):
+                tabela.add_column(col)
+            for r in resultados:
+                v = r.veredito
+                cor = CORES_STATUS[v.status]
+                tabela.add_row(
+                    r.criterio.codigo,
+                    f"[{cor}]{v.status}[/{cor}]",
+                    f"{v.confianca:.2f}",
+                    "sim" if v.revisao_humana else "",
+                    v.justificativa,
+                )
+            console.print(tabela)
+            if run.custo_llm_usd:
+                console.print(f"Custo de IA nesta avaliação: US$ {run.custo_llm_usd:.5f}")
+
+
+golden_app = typer.Typer(help="Golden set: rótulos manuais para medir os avaliadores.")
+app.add_typer(golden_app, name="golden")
+
+
+@golden_app.command("modelo")
+def golden_modelo(
+    entidades: Annotated[
+        list[str] | None, typer.Option("--entidade", help="Slug (repita para várias)")
+    ] = None,
+    sobrescrever: Annotated[
+        bool, typer.Option(help="Substitui uma planilha existente (apaga os rótulos!)")
+    ] = False,
+) -> None:
+    """Gera a planilha de rotulagem (golden/golden_set.xlsx) a partir da rubrica."""
+    from transparencia.evaluation.golden import ENTIDADES_PADRAO, gerar_modelo
+    from transparencia.evaluation.regras import carregar_regras
+
+    s = get_settings()
+    if s.golden_path.exists() and not sobrescrever:
+        console.print(
+            f"[red]{s.golden_path} já existe.[/red] Para não apagar rótulos, nada foi feito. "
+            "Use --sobrescrever se quiser mesmo recomeçar."
+        )
+        raise typer.Exit(1)
+    linhas = gerar_modelo(
+        s.golden_path,
+        carregar_regras(s.evaluation_rules_path),
+        carregar_catalogo(s.criteria_catalog_path),
+        carregar_entidades(s.entities_path),
+        entidades or ENTIDADES_PADRAO,
+    )
+    console.print(f"[green]OK[/green] {linhas} linhas para rotular -> {s.golden_path}")
+
+
 if __name__ == "__main__":
     app()
