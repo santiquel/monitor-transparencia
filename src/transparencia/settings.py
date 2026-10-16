@@ -46,6 +46,9 @@ class Settings(BaseSettings):
     ollama_url: str = "http://localhost:11434"
     anthropic_api_key: str | None = None
 
+    # Endereço da API, usado pelo dashboard
+    api_url: str = "http://localhost:8000"
+
 
 @lru_cache
 def get_settings() -> Settings:
