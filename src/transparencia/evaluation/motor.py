@@ -50,7 +50,9 @@ from transparencia.settings import get_settings
 # completa em 4.5/4.6/20.2; 7.1 exige os 7 campos; 18.1 com contexto LGPD e domínio
 # da entidade; IA não acusa sozinha).
 # 0.3: 4.6 ignora "Publicado em ... | Atualizado em ..." (metadado do CMS, não dos dados).
-VERSAO_MOTOR = "0.3"
+# 0.4: 1.2 só considera "submenu" com lista aninhada ou classe exata de painel escondido
+#      (o menu principal do Wix se chama "dropdown-menu"; achado na revisão humana).
+VERSAO_MOTOR = "0.4"
 
 
 def versao_regua(regras: RegrasAvaliacao) -> str:

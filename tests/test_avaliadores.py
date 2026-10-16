@@ -86,6 +86,44 @@ def test_1_2_link_visivel_rodape_ou_ausente(m):
     assert _avaliar("1.2", snap).status == S.NAO_ATENDE
 
 
+@pytest.mark.parametrize(
+    ("html", "esperado"),
+    [
+        # Wix: o componente do menu principal se chama "dropdown-menu", mas o item
+        # de primeiro nível é visível (achado na revisão humana de Cachoeiras, 1.2).
+        (
+            '<wix-dropdown-menu class="wixui-dropdown-menu"><nav><ul>'
+            '<li class="wixui-dropdown-menu__item"><a href="{p}">TRANSPARÊNCIA</a></li>'
+            "</ul></nav></wix-dropdown-menu>",
+            "visivel",
+        ),
+        # Bootstrap: li.dropdown é o botão visível...
+        (
+            '<nav><ul class="navbar-nav"><li class="nav-item dropdown">'
+            '<a href="{p}">Transparência</a></li></ul></nav>',
+            "visivel",
+        ),
+        # ...e div.dropdown-menu é o painel que só abre ao clicar.
+        (
+            '<nav><div class="dropdown"><button>Governo</button><div class="dropdown-menu">'
+            '<a class="dropdown-item" href="{p}">Transparência</a></div></div></nav>',
+            "submenu",
+        ),
+        # WordPress: ul.sub-menu dentro de um li (como no site do Rio).
+        (
+            '<nav><ul class="menu"><li><a href="/gov">Governo</a><ul class="sub-menu">'
+            '<li><a href="{p}">Transparência</a></li></ul></li></ul></nav>',
+            "submenu",
+        ),
+    ],
+)
+def test_1_2_posicao_do_link_por_biblioteca_de_menu(m, html, esperado):
+    snap = m.pagina(SITE, html.format(p=PORTAL) + TEXTO, 0).snapshot()
+    v = _avaliar("1.2", snap)
+    status = S.ATENDE if esperado == "visivel" else S.ATENDE_PARCIALMENTE
+    assert v.status == status, v.justificativa
+
+
 def test_1_2_sem_pagina_do_site_nao_avalia(m):
     snap = m.pagina(PORTAL, TEXTO, 0).snapshot()
     assert _avaliar("1.2", snap).status == S.NAO_AVALIADO

@@ -84,12 +84,33 @@ def elementos(
     return achados
 
 
+# Classes que as bibliotecas de menu usam para o PAINEL ESCONDIDO (que só abre ao
+# passar o mouse/clicar). Comparadas como nome INTEIRO de classe, não como pedaço:
+# o Wix chama o menu principal inteiro de "wixui-dropdown-menu" (itens visíveis), e
+# no Bootstrap "li.dropdown" é o botão visível; só "ul/div.dropdown-menu" esconde.
+CLASSES_PAINEL_ESCONDIDO = frozenset(
+    {
+        "sub-menu",
+        "submenu",
+        "dropdown-menu",
+        "dropdown-content",
+        "children",
+        "collapse",
+        "mega-menu",
+        "megamenu",
+    }
+)
+
+
 def posicao(tag: Tag) -> str:
     """Onde o elemento está: 'rodape', 'submenu' ou 'visivel'.
 
-    Heurística pela estrutura do HTML: dentro de <footer> (ou classe "rodape"/
-    "footer") = rodapé; dentro de um menu aninhado (<ul> dentro de <li>, ou
-    classes "dropdown"/"submenu") = só aparece ao abrir o menu.
+    Heurística pela estrutura do HTML:
+    - dentro de <footer> (ou classe/id com "footer"/"rodape") = rodapé;
+    - dentro de uma lista ANINHADA em outro item de menu (<ul> dentro de <li>),
+      ou de um painel com classe de menu escondido (CLASSES_PAINEL_ESCONDIDO)
+      = só aparece ao abrir o menu;
+    - o resto = visível.
     """
     for pai in tag.parents:
         if not isinstance(pai, Tag) or pai.name in ("body", "html"):
@@ -97,7 +118,8 @@ def posicao(tag: Tag) -> str:
         rotulo = sem_acento(" ".join(pai.get("class", [])) + " " + str(pai.get("id", "")))
         if pai.name == "footer" or re.search(r"footer|rodape", rotulo):
             return "rodape"
-        if re.search(r"dropdown|sub ?-?menu|children|collapse|mega", rotulo):
+        classes = {c.lower() for c in pai.get("class", [])}
+        if classes & CLASSES_PAINEL_ESCONDIDO:
             return "submenu"
         if pai.name in ("ul", "ol") and pai.find_parent("li") is not None:
             return "submenu"
