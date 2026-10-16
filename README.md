@@ -5,13 +5,18 @@ de portais públicos de transparência, usando como referência o checklist de
 quesitos da LAI, da LRF e normas correlatas (142 critérios em 21 categorias).
 
 Para cada entidade, a plataforma coleta o portal, avalia cada critério com
-**regras determinísticas + IA validada**, registra **evidências auditáveis**,
-calcula uma **pontuação ponderada e explicável** e guarda **todo o histórico**
-para acompanhar a evolução no tempo.
+**regras determinísticas** (IA opcional, ligada só se a medição justificar),
+registra **evidências auditáveis**, calcula uma **pontuação ponderada e
+explicável** (com faixa de incerteza e cobertura), encaminha à **revisão
+humana** o que não pode concluir com segurança e guarda **todo o histórico**.
 
 > Prova de conceito desenvolvida para o Desafio Técnico — Cientista de Dados (MPRJ).
 > Municípios: Rio de Janeiro, Duque de Caxias, Japeri, Itaboraí e Cachoeiras de
 > Macacu (+ Niterói e Maricá).
+
+> **Documentação técnica:** [docs/documentacao_tecnica.md](docs/documentacao_tecnica.md)
+> — problema, arquitetura, abordagem, tecnologias, metodologia de avaliação e de
+> pontuação, não aplicáveis, erros, atualização, limitações e evolução.
 
 ## Início rápido
 
@@ -70,6 +75,7 @@ tests/                    testes (unitários + integração com PostgreSQL no CI
 | [04 — O coletor](docs/04_coletor.md) | Navegação focada, HTTP × navegador, cliques em menus JS, robots.txt, snapshots |
 | [05 — A avaliação](docs/05_avaliacao.md) | Rubrica, cascata regra → IA, pontuação, medição contra o golden set |
 | [06 — API, dashboard e revisão](docs/06_api_dashboard.md) | Rotas, dashboard, revisão humana (veredito + URL indicada), fila/worker, agendamento mensal |
+| [Documentação técnica](docs/documentacao_tecnica.md) | **Documentação técnica**: consolida os anteriores, com resultados medidos e viabilidade para 5.000 portais |
 
 ## Status
 
