@@ -325,3 +325,34 @@ class JuizIA:
         for k, valor in comum.items():
             setattr(v, k, valor)
         return v
+
+
+# -------------------------------------------------------------- fábrica
+
+
+def criar_juiz(s, versao_regras: str, avisar=print) -> JuizIA | None:
+    """Monta o juiz conforme LLM_PROVEDOR; None (só regras) se não houver como usar.
+
+    `avisar` recebe as mensagens (a CLI imprime; o worker registra no log).
+    """
+    if s.llm_provedor == "nenhum":
+        avisar("LLM_PROVEDOR=nenhum: avaliando só com regras.")
+        return None
+    if s.llm_provedor == "anthropic":
+        if not s.anthropic_api_key:
+            avisar("ANTHROPIC_API_KEY ausente: avaliando só com regras.")
+            return None
+        import anthropic
+
+        provedor = ProvedorAnthropic(anthropic.Anthropic(api_key=s.anthropic_api_key))
+    else:
+        provedor = ProvedorOllama(s.ollama_url)
+        instalados = provedor.modelos_instalados()
+        if instalados is None:
+            avisar(f"Ollama não respondeu em {s.ollama_url} (está aberto?): só regras.")
+            return None
+        if s.llm_model not in instalados:
+            avisar(f"Modelo {s.llm_model} não baixado (`ollama pull {s.llm_model}`): só regras.")
+            return None
+    avisar(f"IA: {provedor.nome} / {s.llm_model}")
+    return JuizIA(provedor, s.llm_model, s.data_dir / "cache_llm", versao_regras)

@@ -16,7 +16,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from transparencia.collector.urls import caminho, normalizar
-from transparencia.collector.vocabulario import sem_acento, temas_de
+from transparencia.collector.vocabulario import MARCA_INDICADA, sem_acento, temas_de
 from transparencia.db.models import CrawlRun, Page
 
 # Páginas XHTML (sistemas Java/JSF) são lidas como HTML de propósito.
@@ -70,6 +70,11 @@ class PaginaSnapshot:
     def texto_busca(self) -> str:
         """Texto sem acento e em minúsculas, para comparar com padrões."""
         return sem_acento(self.texto)
+
+    @property
+    def indicada(self) -> bool:
+        """Página apontada por um revisor humano como a certa para um critério."""
+        return (self.page.texto_link or "").startswith(MARCA_INDICADA)
 
     @cached_property
     def temas(self) -> set[str]:
@@ -125,7 +130,9 @@ class Snapshot:
         return self._inicial(self.url_portal)
 
     def com_tema(self, *temas: str) -> list[PaginaSnapshot]:
-        return [p for p in self.html if p.temas & set(temas)]
+        """Páginas do tema; as INDICADAS por revisores humanos vêm primeiro."""
+        paginas = [p for p in self.html if p.temas & set(temas)]
+        return sorted(paginas, key=lambda p: not p.indicada)  # sort estável: mantém a ordem
 
     def buscar(self, padrao: re.Pattern[str], paginas=None) -> list[tuple[PaginaSnapshot, str]]:
         """Páginas cujo texto casa com o padrão, com o trecho literal ao redor."""

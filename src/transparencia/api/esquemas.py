@@ -6,8 +6,9 @@ float (o banco guarda Decimal) para o JSON ficar simples de consumir.
 """
 
 from datetime import datetime
+from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, model_validator
 
 
 class Nota(BaseModel):
@@ -33,6 +34,8 @@ class ResumoAvaliacao(BaseModel):
     coletado_em: datetime | None
     versao_regras: str
     nota: Nota | None
+    # Mesma fórmula, usando o veredito humano onde houver (None = nenhuma revisão).
+    nota_revisada: Nota | None = None
     revisoes_pendentes: int
 
 
@@ -66,7 +69,38 @@ class Evidencia(BaseModel):
     metadados: dict | None
 
 
+class Revisao(BaseModel):
+    """O que uma pessoa registrou sobre o critério (não altera o resultado da máquina)."""
+
+    id: int
+    criterio: str
+    status: str | None  # veredito humano; None = só indicou a URL
+    url_indicada: str | None
+    comentario: str | None
+    revisor: str | None
+    coleta_id: int | None  # o veredito vale para esta coleta
+    criado_em: datetime
+
+
+class NovaRevisao(BaseModel):
+    """Entrada de POST /results/{id}/review. Pelo menos status ou url_indicada."""
+
+    status: Literal["ATENDE", "ATENDE_PARCIALMENTE", "NAO_ATENDE", "NAO_APLICAVEL"] | None = None
+    url_indicada: str | None = Field(
+        None, pattern=r"^https?://", description="Página certa para o critério (vira semente)"
+    )
+    comentario: str | None = Field(None, max_length=2000)
+    revisor: str | None = Field(None, max_length=80)
+
+    @model_validator(mode="after")
+    def _algo(self):
+        if self.status is None and not self.url_indicada:
+            raise ValueError("informe o veredito (status) e/ou a URL correta")
+        return self
+
+
 class Resultado(BaseModel):
+    id: int  # usado para registrar uma revisão
     criterio: str
     descricao: str
     categoria_codigo: str
@@ -79,6 +113,9 @@ class Resultado(BaseModel):
     revisao_humana: bool
     llm_modelo: str | None
     evidencias: list[Evidencia]
+    revisao: Revisao | None = None  # a mais recente para o critério nesta entidade
+    # Veredito humano desta coleta, se houver; senão o da máquina.
+    status_final: str
 
 
 class Avaliacao(BaseModel):
@@ -91,6 +128,8 @@ class Avaliacao(BaseModel):
     versao_regras: str
     custo_llm_usd: float | None
     nota: Nota | None
+    nota_revisada: Nota | None = None
+    revisados: int = 0  # critérios com veredito humano nesta coleta
     categorias: list[NotaCategoria]
     resultados: list[Resultado]
 
@@ -139,6 +178,7 @@ class Criterio(BaseModel):
 
 
 class ItemRevisao(BaseModel):
+    resultado_id: int
     entidade: str
     entidade_nome: str
     avaliacao_id: int
@@ -148,3 +188,15 @@ class ItemRevisao(BaseModel):
     confianca: float | None
     justificativa: str | None
     evidencia_url: str | None
+
+
+class Job(BaseModel):
+    id: int
+    tipo: str
+    entidade: str | None
+    status: str  # PENDENTE | EXECUTANDO | SUCESSO | FALHA | CANCELADO
+    tentativas: int
+    criado_em: datetime
+    concluido_em: datetime | None
+    resultado: dict | None
+    ultimo_erro: str | None

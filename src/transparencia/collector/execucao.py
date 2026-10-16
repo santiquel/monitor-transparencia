@@ -21,7 +21,8 @@ from transparencia.collector.coletor import (
     ResultadoColeta,
 )
 from transparencia.collector.robots import PoliticaRobots
-from transparencia.db.models import CrawlRun, Entity, EntityUrl, Page, StatusExecucao
+from transparencia.collector.vocabulario import texto_link_indicado
+from transparencia.db.models import CrawlRun, Entity, EntityUrl, Page, Revisao, StatusExecucao
 from transparencia.settings import get_settings
 
 CAMPOS_PAGE = (
@@ -51,6 +52,17 @@ def urls_ativas(session: Session, entity: Entity) -> dict[str, str]:
         .order_by(EntityUrl.first_seen_at)
     )
     return {u.tipo: u.url for u in linhas}
+
+
+def urls_indicadas(session: Session, entity: Entity) -> list[tuple[str, str]]:
+    """URLs que revisores indicaram, a mais recente por critério: (url, texto_link marcado)."""
+    revisoes = session.scalars(
+        select(Revisao)
+        .where(Revisao.entity_id == entity.id, Revisao.url_indicada.is_not(None))
+        .order_by(Revisao.created_at)
+    )
+    por_criterio = {r.criterio_codigo: r.url_indicada for r in revisoes}  # a última vence
+    return [(url, texto_link_indicado(codigo)) for codigo, url in sorted(por_criterio.items())]
 
 
 def _registrar_portal(
@@ -85,13 +97,19 @@ def executar_coleta(
     s = get_settings()
     urls = urls_ativas(session, entity)
     url_site, url_portal = urls["site"], urls.get("portal")
+    indicadas = urls_indicadas(session, entity)
 
     run = CrawlRun(
         entity_id=entity.id,
         url_inicial=url_portal or url_site,
         status=StatusExecucao.EXECUTANDO,
         started_at=datetime.now(UTC),
-        parametros={**asdict(params), "user_agent": s.coletor_user_agent, "url_site": url_site},
+        parametros={
+            **asdict(params),
+            "user_agent": s.coletor_user_agent,
+            "url_site": url_site,
+            "urls_indicadas": [url for url, _ in indicadas],
+        },
     )
     session.add(run)
     session.commit()
@@ -122,7 +140,7 @@ def executar_coleta(
             navegador=navegador,
             ao_coletar=gravar,
         )
-        resultado = coletor.coletar(url_site, url_portal)
+        resultado = coletor.coletar(url_site, url_portal, indicadas)
 
         run.fornecedor_detectado = resultado.fornecedor
         _registrar_portal(session, entity, resultado, url_portal)

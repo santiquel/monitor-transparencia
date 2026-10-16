@@ -347,7 +347,15 @@ class Coletor:
             return cota_site if tem_portal else self.params.max_paginas
         return self.params.max_paginas - cota_site
 
-    def coletar(self, url_site: str, url_portal: str | None = None) -> ResultadoColeta:
+    def coletar(
+        self,
+        url_site: str,
+        url_portal: str | None = None,
+        indicadas: list[tuple[str, str]] = (),
+    ) -> ResultadoColeta:
+        """`indicadas`: (url, texto_link) apontadas por revisores humanos. Entram como
+        sementes, com o texto marcado (tema do critério), e contam no orçamento do
+        ramo do domínio delas (portal, se não forem do site oficial)."""
         self._resultado = ResultadoColeta()
         self._fila: list = []
         self._seq = itertools.count()
@@ -362,6 +370,16 @@ class Coletor:
         for url, papel in sementes:
             if url and (normalizada := normalizar(url)):
                 self._enfileirar(_Alvo(normalizada, 0, PRIORIDADE_SEMENTE, papel=papel, ramo=papel))
+        # Mesmo HOST do site oficial = ramo do site; o resto (portal, sistemas de
+        # fornecedores) usa o orçamento do portal. Comparar o domínio-base erraria:
+        # site e portal costumam compartilhá-lo (www.x.rj.gov.br, transparencia.x.rj.gov.br).
+        host_site = host(url_site)
+        for url, texto in indicadas:
+            if normalizada := normalizar(url):
+                ramo = "site" if host(normalizada) == host_site else "portal"
+                self._enfileirar(
+                    _Alvo(normalizada, 1, PRIORIDADE_SEMENTE, ramo=ramo, texto_link=texto)
+                )
 
         paginas = {"site": 0, "portal": 0}
         documentos = 0

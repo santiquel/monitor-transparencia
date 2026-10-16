@@ -95,6 +95,33 @@ def _compilar(termos: tuple[str, ...]) -> re.Pattern[str]:
 
 _PADROES = {tema: _compilar(termos) for tema, termos in TEMAS.items()}
 
+# Tema de cada critério da PoC que depende de uma página temática. Usado para
+# marcar a URL que um revisor indicou: a página entra na coleta já com o tema
+# certo, sem depender do texto do link ou do título (que podem enganar, como a
+# folha de pagamento da Betha que parecia "despesa").
+TEMA_POR_CRITERIO = {
+    "4.1": "despesa",
+    "4.5": "despesa",
+    "4.6": "despesa",
+    "5.1": "pessoal",
+    "7.1": "licitacoes",
+    "12.1": "gestao_fiscal",
+    "19.5": "gestao_fiscal",
+    "20.1": "gestao_fiscal",
+    "20.2": "gestao_fiscal",
+    "15.2": "esic",
+    "18.1": "lgpd",
+    "18.3": "dados_abertos",
+}
+MARCA_INDICADA = "[indicada na revisão]"
+
+
+def texto_link_indicado(codigo: str) -> str:
+    """Texto de link sintético da página indicada: carrega a marca e o tema."""
+    tema = TEMA_POR_CRITERIO.get(codigo)
+    termo = TEMAS[tema][0] if tema else ""
+    return f"{MARCA_INDICADA} critério {codigo} {termo}".strip()
+
 
 def temas_de(*textos: str) -> set[str]:
     """Temas encontrados no texto do link e/ou na URL."""

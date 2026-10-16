@@ -17,11 +17,16 @@ from transparencia.db.models import (
     CriterionResult,
     Entity,
     EvaluationRun,
+    Job,
+    Revisao,
     Score,
+    StatusConformidade,
     StatusExecucao,
 )
 from transparencia.evaluation.motor import ordem_mais_recente
+from transparencia.evaluation.pontuacao import calcular_nota
 from transparencia.evaluation.regras import carregar_regras
+from transparencia.evaluation.veredito import Veredito
 from transparencia.settings import get_settings
 
 CONCLUIDAS = (StatusExecucao.SUCESSO, StatusExecucao.PARCIAL)
@@ -57,6 +62,65 @@ def _ordem(codigo: str) -> tuple[int, ...]:
     return tuple(int(x) for x in codigo.split("."))
 
 
+# ------------------------------------------------------------ revisões
+
+
+def _revisoes(session: Session, entity_id: int) -> dict[str, list[Revisao]]:
+    """Revisões da entidade por critério, da mais antiga para a mais recente."""
+    por_criterio: dict[str, list[Revisao]] = {}
+    for r in session.scalars(
+        select(Revisao).where(Revisao.entity_id == entity_id).order_by(Revisao.created_at)
+    ):
+        por_criterio.setdefault(r.criterio_codigo, []).append(r)
+    return por_criterio
+
+
+def _veredito_humano(revisoes: list[Revisao], coleta_id: int | None) -> Revisao | None:
+    """O veredito humano mais recente PARA ESTA COLETA (o portal muda entre coletas)."""
+    return next((r for r in reversed(revisoes) if r.status and r.crawl_run_id == coleta_id), None)
+
+
+def _revisao(r: Revisao | None) -> e.Revisao | None:
+    if r is None:
+        return None
+    return e.Revisao(
+        id=r.id,
+        criterio=r.criterio_codigo,
+        status=r.status,
+        url_indicada=r.url_indicada,
+        comentario=r.comentario,
+        revisor=r.revisor,
+        coleta_id=r.crawl_run_id,
+        criado_em=r.created_at,
+    )
+
+
+def _nota_revisada(
+    run: EvaluationRun, revisoes: dict[str, list[Revisao]]
+) -> tuple[e.Nota | None, int]:
+    """Mesma fórmula da nota da máquina, trocando o status pelo veredito humano
+    onde houver. Devolve (nota, quantos critérios foram revisados); nota None se
+    nenhum foi."""
+    itens, revisados = [], 0
+    for r in run.results:
+        humano = _veredito_humano(revisoes.get(r.criterion.codigo, []), run.crawl_run_id)
+        revisados += humano is not None
+        status = StatusConformidade(humano.status if humano else r.status)
+        itens.append((r.criterion, Veredito(status, float(r.confianca or 0), "")))
+    if not revisados:
+        return None, 0
+    n = calcular_nota(itens)
+    nota = e.Nota(
+        valor=_f(n.valor),
+        valor_min=_f(n.valor_min),
+        valor_max=_f(n.valor_max),
+        cobertura=_f(n.cobertura),
+        nivel=n.nivel,
+        essenciais_ok=n.essenciais_ok,
+    )
+    return nota, revisados
+
+
 # ------------------------------------------------------------ entidades
 
 
@@ -87,6 +151,7 @@ def _resumo(session: Session, run: EvaluationRun | None) -> e.ResumoAvaliacao | 
         coletado_em=coleta.started_at if coleta else None,
         versao_regras=run.versao_regras,
         nota=_nota(_geral(run)),
+        nota_revisada=_nota_revisada(run, _revisoes(session, run.entity_id))[0],
         revisoes_pendentes=pendentes or 0,
     )
 
@@ -131,6 +196,12 @@ def detalhar_entidade(session: Session, slug: str) -> e.Entidade | None:
 # ------------------------------------------------------------ avaliações
 
 
+def _status_final(r: CriterionResult, revisoes: dict, coleta_id: int | None) -> str:
+    """Veredito humano desta coleta, se houver; senão o status da máquina."""
+    humano = _veredito_humano(revisoes.get(r.criterion.codigo, []), coleta_id)
+    return humano.status if humano else r.status
+
+
 def detalhar_avaliacao(session: Session, run_id: int) -> e.Avaliacao | None:
     run = session.scalar(
         select(EvaluationRun)
@@ -145,6 +216,8 @@ def detalhar_avaliacao(session: Session, run_id: int) -> e.Avaliacao | None:
         return None
     ent = session.get(Entity, run.entity_id)
     coleta = session.get(CrawlRun, run.crawl_run_id) if run.crawl_run_id else None
+    revisoes = _revisoes(session, ent.id)
+    nota_revisada, revisados = _nota_revisada(run, revisoes)
     nomes_categoria = {
         r.criterion.categoria_codigo: r.criterion.categoria_nome for r in run.results
     }
@@ -161,6 +234,7 @@ def detalhar_avaliacao(session: Session, run_id: int) -> e.Avaliacao | None:
     ]
     resultados = [
         e.Resultado(
+            id=r.id,
             criterio=r.criterion.codigo,
             descricao=r.criterion.descricao,
             categoria_codigo=r.criterion.categoria_codigo,
@@ -186,6 +260,8 @@ def detalhar_avaliacao(session: Session, run_id: int) -> e.Avaliacao | None:
                 )
                 for ev in sorted(r.evidences, key=lambda ev: ev.id)
             ],
+            revisao=_revisao((revisoes.get(r.criterion.codigo) or [None])[-1]),
+            status_final=_status_final(r, revisoes, run.crawl_run_id),
         )
         for r in sorted(run.results, key=lambda r: _ordem(r.criterion.codigo))
     ]
@@ -199,6 +275,8 @@ def detalhar_avaliacao(session: Session, run_id: int) -> e.Avaliacao | None:
         versao_regras=run.versao_regras,
         custo_llm_usd=_f(run.custo_llm_usd),
         nota=_nota(_geral(run)),
+        nota_revisada=nota_revisada,
+        revisados=revisados,
         categorias=categorias,
         resultados=resultados,
     )
@@ -358,10 +436,14 @@ def fila_de_revisao(session: Session) -> list[e.ItemRevisao]:
                 selectinload(CriterionResult.criterion), selectinload(CriterionResult.evidences)
             )
         )
+        revisoes = _revisoes(session, ent.id)
         for r in sorted(resultados, key=lambda r: _ordem(r.criterion.codigo)):
+            if _veredito_humano(revisoes.get(r.criterion.codigo, []), run.crawl_run_id):
+                continue  # já decidido por uma pessoa nesta coleta
             ev = min(r.evidences, key=lambda ev: ev.id) if r.evidences else None
             itens.append(
                 e.ItemRevisao(
+                    resultado_id=r.id,
                     entidade=ent.slug,
                     entidade_nome=ent.nome,
                     avaliacao_id=run.id,
@@ -374,3 +456,62 @@ def fila_de_revisao(session: Session) -> list[e.ItemRevisao]:
                 )
             )
     return itens
+
+
+def registrar_revisao(session: Session, resultado_id: int, nova: e.NovaRevisao) -> e.Revisao | None:
+    """Grava o que a pessoa decidiu. O resultado da máquina não é alterado."""
+    resultado = session.get(CriterionResult, resultado_id)
+    if resultado is None:
+        return None
+    run = session.get(EvaluationRun, resultado.evaluation_run_id)
+    revisao = Revisao(
+        entity_id=run.entity_id,
+        criterio_codigo=resultado.criterion.codigo,
+        criterion_result_id=resultado.id,
+        crawl_run_id=run.crawl_run_id,
+        status=nova.status,
+        url_indicada=nova.url_indicada,
+        comentario=nova.comentario,
+        revisor=nova.revisor,
+    )
+    session.add(revisao)
+    session.commit()
+    return _revisao(revisao)
+
+
+def listar_revisoes(session: Session, ent: Entity) -> list[e.Revisao]:
+    return [_revisao(r) for revs in _revisoes(session, ent.id).values() for r in revs]
+
+
+# ------------------------------------------------------------ jobs
+
+
+def _job(j: Job) -> e.Job:
+    return e.Job(
+        id=j.id,
+        tipo=j.tipo,
+        entidade=(j.payload or {}).get("slug"),
+        status=j.status,
+        tentativas=j.tentativas,
+        criado_em=j.created_at,
+        concluido_em=j.finished_at,
+        resultado=j.resultado,
+        ultimo_erro=j.ultimo_erro.splitlines()[0] if j.ultimo_erro else None,
+    )
+
+
+def pedir_coleta(session: Session, ent: Entity) -> tuple[e.Job, bool]:
+    """Enfileira coleta + avaliação; o worker executa (a API não espera minutos)."""
+    from transparencia.fila import COLETAR_AVALIAR, enfileirar
+
+    job, criado = enfileirar(session, COLETAR_AVALIAR, {"slug": ent.slug, "origem": "manual"})
+    session.commit()
+    session.refresh(job)
+    return _job(job), criado
+
+
+def listar_jobs(session: Session, slug: str | None = None, limite: int = 20) -> list[e.Job]:
+    consulta = select(Job).order_by(Job.id.desc()).limit(limite)
+    if slug:
+        consulta = consulta.where(Job.payload["slug"].as_string() == slug)
+    return [_job(j) for j in session.scalars(consulta)]

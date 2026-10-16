@@ -3,15 +3,19 @@
 Rodar:  uv run transparencia api            (ou: uv run uvicorn transparencia.api.app:app)
 Docs:   http://localhost:8000/docs           (gerada automaticamente a partir dos esquemas)
 
-A API só LÊ o banco: coleta e avaliação continuam pela CLI / agendador. Assim
-ela pode ficar exposta sem risco de alguém disparar trabalho pesado por HTTP.
+A API quase só LÊ. As duas únicas escritas são leves e não apagam nada:
+- registrar uma revisão humana (POST /results/{id}/review);
+- PEDIR uma coleta (POST /entities/{slug}/jobs): só põe um job na fila; quem
+  coleta é o worker (`transparencia worker`), fora da requisição HTTP.
+Na PoC não há autenticação; em produção, essas duas rotas exigiriam login e o
+revisor viria da identidade autenticada (docs/06_api_dashboard.md).
 """
 
 import mimetypes
 from collections.abc import Iterator
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query, Response
 from fastapi.responses import FileResponse, RedirectResponse
 from sqlalchemy import text
 from sqlalchemy.orm import Session, sessionmaker
@@ -115,8 +119,49 @@ def criterios(
 
 @app.get("/review", tags=["revisão"])
 def fila_de_revisao(session: Sessao) -> list[e.ItemRevisao]:
-    """Critérios que precisam de um humano, na avaliação mais recente de cada entidade."""
+    """Critérios que precisam de um humano, na avaliação mais recente de cada entidade.
+    Itens que já receberam veredito humano nesta coleta saem da fila."""
     return consultas.fila_de_revisao(session)
+
+
+@app.post("/results/{resultado_id}/review", tags=["revisão"], status_code=201)
+def revisar(resultado_id: int, nova: e.NovaRevisao, session: Sessao) -> e.Revisao:
+    """Registra o veredito humano e/ou a URL correta de um critério.
+
+    O resultado da máquina não muda (histórico append-only). O veredito vale para
+    a coleta revisada e entra na `nota_revisada`; a URL indicada vira semente das
+    próximas coletas da entidade, já marcada com o tema do critério.
+    """
+    revisao = consultas.registrar_revisao(session, resultado_id, nova)
+    if revisao is None:
+        raise HTTPException(404, f"Resultado {resultado_id} não encontrado.")
+    return revisao
+
+
+@app.get("/entities/{slug}/reviews", tags=["revisão"])
+def revisoes(slug: str, session: Sessao) -> list[e.Revisao]:
+    """Todas as revisões registradas para a entidade (auditoria)."""
+    return consultas.listar_revisoes(session, _entidade_ou_404(session, slug))
+
+
+@app.post("/entities/{slug}/jobs", tags=["fila"], status_code=202)
+def pedir_coleta(slug: str, session: Sessao, response: Response) -> e.Job:
+    """Pede uma nova coleta + avaliação. Responde na hora (202 = aceito): quem executa
+    é o worker. Se já houver um pedido pendente para a entidade, devolve esse (200)."""
+    job, criado = consultas.pedir_coleta(session, _entidade_ou_404(session, slug))
+    if not criado:
+        response.status_code = 200
+    return job
+
+
+@app.get("/jobs", tags=["fila"])
+def jobs(
+    session: Sessao,
+    slug: Annotated[str | None, Query(description="Filtra por entidade")] = None,
+    limite: Annotated[int, Query(ge=1, le=200)] = 20,
+) -> list[e.Job]:
+    """Jobs mais recentes da fila, com status, tentativas e resultado."""
+    return consultas.listar_jobs(session, slug, limite)
 
 
 @app.get("/evidencias/{evidencia_id}/arquivo", tags=["avaliações"])

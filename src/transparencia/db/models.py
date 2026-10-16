@@ -402,3 +402,42 @@ class Job(TimestampMixin, Base):
     locked_by: Mapped[str | None] = mapped_column(String(80))
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     ultimo_erro: Mapped[str | None] = mapped_column(Text)
+    resultado: Mapped[dict | None] = mapped_column(JSONType)  # ex.: ids da coleta/avaliação
+
+
+# ---------------------------------------------------------------------------
+# Revisão humana (migrations/sql/0003_revisoes.sql)
+# ---------------------------------------------------------------------------
+
+
+class Revisao(TimestampMixin, Base):
+    """O que uma pessoa decidiu sobre um critério de uma entidade.
+
+    Não altera o resultado da máquina: fica ao lado dele. `status` (veredito)
+    vale para a coleta revisada; `url_indicada` vira semente das próximas coletas.
+    """
+
+    __tablename__ = "revisoes"
+    __table_args__ = (
+        CheckConstraint(
+            "status IS NULL OR status IN "
+            "('ATENDE', 'ATENDE_PARCIALMENTE', 'NAO_ATENDE', 'NAO_APLICAVEL')",
+            name="ck_revisoes_status",
+        ),
+        CheckConstraint("status IS NOT NULL OR url_indicada IS NOT NULL", name="ck_revisoes_algo"),
+        Index("ix_revisoes_entidade_criterio", "entity_id", "criterio_codigo", "created_at"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    entity_id: Mapped[int] = mapped_column(ForeignKey("entities.id", ondelete="CASCADE"))
+    criterio_codigo: Mapped[str] = mapped_column(String(10))
+    criterion_result_id: Mapped[int | None] = mapped_column(
+        ForeignKey("criterion_results.id", ondelete="SET NULL")
+    )
+    crawl_run_id: Mapped[int | None] = mapped_column(
+        ForeignKey("crawl_runs.id", ondelete="SET NULL")
+    )
+    status: Mapped[str | None] = mapped_column(String(25))
+    url_indicada: Mapped[str | None] = mapped_column(Text)
+    comentario: Mapped[str | None] = mapped_column(Text)
+    revisor: Mapped[str | None] = mapped_column(String(80))

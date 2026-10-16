@@ -293,6 +293,20 @@ def test_orcamento_de_paginas(tmp_path):
     assert not any(eh_documento(p.url) for p in r.paginas)
 
 
+def test_url_indicada_na_revisao_entra_como_semente_com_tema(tmp_path):
+    """A página que um revisor indicou é visitada mesmo com orçamento apertado e
+    carrega o tema do critério no texto do link (não depende do título)."""
+    from transparencia.collector.vocabulario import MARCA_INDICADA, texto_link_indicado
+
+    indicada = PORTAL + "despesas/consultar"  # normalmente só a 2 cliques do portal
+    coletor, _ = _coletor(tmp_path, max_paginas=3, max_documentos=0)
+    r = coletor.coletar(SITE, PORTAL, [(indicada, texto_link_indicado("4.1"))])
+    por_url = {p.url: p for p in r.paginas if p.fetched_at is not None}
+    assert indicada in por_url
+    assert por_url[indicada].texto_link.startswith(MARCA_INDICADA)
+    assert "despesa" in temas_de(por_url[indicada].texto_link)
+
+
 def test_sem_navegador_segue_so_com_http(tmp_path):
     coletor, _ = _coletor(tmp_path, navegador=None)
     r = coletor.coletar(SITE, PORTAL)

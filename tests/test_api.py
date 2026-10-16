@@ -196,3 +196,58 @@ def test_criterios_e_fila_de_revisao(cenario):
     fila = c.get("/review").json()
     assert [(i["entidade"], i["criterio"]) for i in fila] == [("japeri", "1.2")]
     assert fila[0]["evidencia_url"] == "https://japeri.exemplo/despesas"
+
+
+# --------------------------------------------- escritas: revisão e pedido de coleta
+# (rodam por último: alteram o cenário)
+
+
+def test_revisao_valida_entrada(cenario):
+    c, _ = cenario
+    a = c.get("/entities/japeri/evaluations/latest").json()
+    rid = a["resultados"][1]["id"]
+    assert c.post(f"/results/{rid}/review", json={}).status_code == 422  # nada informado
+    assert c.post(f"/results/{rid}/review", json={"url_indicada": "ftp://x"}).status_code == 422
+    assert c.post(f"/results/{rid}/review", json={"status": "TALVEZ"}).status_code == 422
+    assert c.post("/results/999999/review", json={"status": "ATENDE"}).status_code == 404
+
+
+def test_revisao_entra_na_nota_revisada_sem_alterar_a_maquina(cenario):
+    c, _ = cenario
+    antes = c.get("/entities/japeri/evaluations/latest").json()
+    r12 = antes["resultados"][1]
+    assert antes["nota_revisada"] is None and r12["status_final"] == "NAO_AVALIADO"
+
+    resp = c.post(
+        f"/results/{r12['id']}/review",
+        json={
+            "status": "NAO_ATENDE",
+            "url_indicada": "https://japeri.exemplo/despesas-orcamentarias",
+            "comentario": "a página certa é a de despesas orçamentárias",
+            "revisor": "teste",
+        },
+    )
+    assert resp.status_code == 201 and resp.json()["coleta_id"] == antes["coleta_id"]
+
+    depois = c.get("/entities/japeri/evaluations/latest").json()
+    r12 = depois["resultados"][1]
+    assert r12["status"] == "NAO_AVALIADO"  # o resultado da máquina não muda
+    assert r12["status_final"] == "NAO_ATENDE" and r12["revisao"]["revisor"] == "teste"
+    assert depois["revisados"] == 1
+    # máquina: 1.1 ATENDE (1.2 fora da conta) = 80 no cenário; revisada: 1.1 ATENDE +
+    # 1.2 NAO_ATENDE -> nota recalculada pela mesma fórmula, com cobertura de 100%.
+    assert depois["nota"]["valor"] == 80
+    assert depois["nota_revisada"]["cobertura"] == 100
+    assert depois["nota_revisada"]["valor"] < 100
+    assert c.get("/review").json() == []  # saiu da fila
+    assert len(c.get("/entities/japeri/reviews").json()) == 1
+
+
+def test_pedir_coleta_enfileira_sem_duplicar(cenario):
+    c, _ = cenario
+    r1 = c.post("/entities/japeri/jobs")
+    r2 = c.post("/entities/japeri/jobs")
+    assert r1.status_code == 202 and r2.status_code == 200
+    assert r1.json()["id"] == r2.json()["id"] and r1.json()["status"] == "PENDENTE"
+    assert [j["entidade"] for j in c.get("/jobs?slug=japeri").json()] == ["japeri"]
+    assert c.post("/entities/nao-existe/jobs").status_code == 404

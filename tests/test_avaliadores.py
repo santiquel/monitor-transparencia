@@ -229,6 +229,23 @@ def test_4_6_atraso_declarado_pelo_portal_e_nao_atende(m):
     assert _avaliar("4.6", snap).status == S.NAO_ATENDE
 
 
+def test_pagina_indicada_pelo_revisor_vem_primeiro(m):
+    from transparencia.collector.vocabulario import texto_link_indicado
+
+    folha = "<table><tr><th>Nome</th><th>Salário</th></tr></table>"  # parece despesa, não é
+    snap = (
+        m.pagina(PORTAL + "agrupador/31207", folha + TEXTO, texto_link="Despesas com pessoal")
+        .pagina(PORTAL + "consulta/despesas", TEXTO, texto_link=texto_link_indicado("4.1"))
+        .snapshot()
+    )
+    assert [p.url for p in snap.com_tema("despesa")] == [
+        PORTAL + "consulta/despesas",
+        PORTAL + "agrupador/31207",
+    ]
+    v = _avaliar("4.1", snap)  # sem tabela de despesa visível: aponta a página indicada
+    assert v.status == S.NAO_AVALIADO and v.evidencias[0].url == PORTAL + "consulta/despesas"
+
+
 def test_4_6_metadado_de_publicacao_do_cms_nao_e_declaracao(m):
     corpo = "<p>Publicado em 19/08/2019 - 15:23 | Atualizado em 30/04/2025 - 18:13</p>"
     snap = m.pagina(PORTAL + "despesas", corpo + TEXTO, texto_link="Despesas").snapshot()

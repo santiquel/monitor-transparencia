@@ -187,36 +187,9 @@ CORES_STATUS = {
 
 
 def _criar_juiz(s, versao_regras: str):
-    """Monta o juiz de IA conforme LLM_PROVEDOR; None (só regras) se não houver como usar."""
-    from transparencia.evaluation.ia import JuizIA, ProvedorAnthropic, ProvedorOllama
+    from transparencia.evaluation.ia import criar_juiz
 
-    if s.llm_provedor == "nenhum":
-        console.print("[yellow]LLM_PROVEDOR=nenhum: avaliando só com regras.[/yellow]")
-        return None
-    if s.llm_provedor == "anthropic":
-        if not s.anthropic_api_key:
-            console.print("[yellow]ANTHROPIC_API_KEY ausente: avaliando só com regras.[/yellow]")
-            return None
-        import anthropic
-
-        provedor = ProvedorAnthropic(anthropic.Anthropic(api_key=s.anthropic_api_key))
-    else:
-        provedor = ProvedorOllama(s.ollama_url)
-        instalados = provedor.modelos_instalados()
-        if instalados is None:
-            console.print(
-                f"[yellow]Ollama não respondeu em {s.ollama_url} (está aberto?): "
-                "avaliando só com regras.[/yellow]"
-            )
-            return None
-        if s.llm_model not in instalados:
-            console.print(
-                f"[yellow]Modelo {s.llm_model} não baixado (rode `ollama pull {s.llm_model}`): "
-                "avaliando só com regras.[/yellow]"
-            )
-            return None
-    console.print(f"IA: {provedor.nome} / {s.llm_model}")
-    return JuizIA(provedor, s.llm_model, s.data_dir / "cache_llm", versao_regras)
+    return criar_juiz(s, versao_regras, avisar=lambda m: console.print(f"[yellow]{m}[/yellow]"))
 
 
 @app.command("avaliar")
@@ -344,6 +317,51 @@ def reprocessar(
     )
 
 
+@app.command("agendar")
+def agendar(
+    slugs: Annotated[list[str] | None, typer.Argument(help="Slugs das entidades")] = None,
+    todas: Annotated[bool, typer.Option("--todas", help="Todas as entidades ativas")] = False,
+) -> None:
+    """Põe na fila uma coleta + avaliação por entidade (o worker executa).
+
+    Para a rotina mensal, agende este comando no sistema (Agendador de Tarefas do
+    Windows ou cron): `transparencia agendar --todas`. Ver docs/06_api_dashboard.md.
+    """
+    from sqlalchemy import select
+
+    from transparencia.db.models import Entity
+    from transparencia.db.session import session_scope
+    from transparencia.fila import COLETAR_AVALIAR, enfileirar
+
+    with session_scope() as session:
+        if todas:
+            slugs = list(session.scalars(select(Entity.slug).where(Entity.ativo.is_(True))))
+        if not slugs:
+            raise typer.BadParameter("informe ao menos um slug ou use --todas")
+        for slug in slugs:
+            job, criado = enfileirar(session, COLETAR_AVALIAR, {"slug": slug, "origem": "agendada"})
+            estado = "enfileirado" if criado else f"já estava na fila ({job.status})"
+            console.print(f"{slug}: job {job.id} {estado}")
+
+
+@app.command("worker")
+def worker(
+    uma_vez: Annotated[bool, typer.Option(help="Processa o que houver na fila e encerra")] = False,
+    intervalo: Annotated[float, typer.Option(help="Segundos entre consultas à fila")] = 10,
+) -> None:
+    """Processa a fila de jobs (coletas e avaliações). Pode rodar mais de um ao mesmo tempo."""
+    from sqlalchemy.orm import sessionmaker
+
+    from transparencia.db.session import get_engine
+    from transparencia.fila import rodar_worker
+
+    fabrica = sessionmaker(bind=get_engine(), expire_on_commit=False)
+    try:
+        rodar_worker(fabrica, uma_vez=uma_vez, intervalo_s=intervalo, log=console.print)
+    except KeyboardInterrupt:
+        console.print("worker encerrado (Ctrl+C)")
+
+
 @app.command("api")
 def api(
     porta: Annotated[int, typer.Option(help="Porta HTTP")] = 8000,
@@ -354,6 +372,17 @@ def api(
     import uvicorn
 
     uvicorn.run("transparencia.api.app:app", host=host, port=porta, reload=recarregar)
+
+
+@app.command("dashboard")
+def dashboard(porta: Annotated[int, typer.Option(help="Porta HTTP")] = 8501) -> None:
+    """Sobe o dashboard (Streamlit). A API precisa estar no ar (transparencia api)."""
+    import subprocess
+    import sys
+
+    arquivo = Path(__file__).parent / "dashboard" / "app.py"
+    comando = [sys.executable, "-m", "streamlit", "run", str(arquivo), "--server.port", str(porta)]
+    raise typer.Exit(subprocess.call(comando))
 
 
 golden_app = typer.Typer(help="Golden set: rótulos manuais para medir os avaliadores.")
