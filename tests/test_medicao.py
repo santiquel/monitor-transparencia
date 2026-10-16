@@ -86,10 +86,15 @@ def test_ler_rotulos_normaliza_planilha(tmp_path):
     ws.title = "rotulos"
     ws.append(["entidade", "criterio", "status", "url_evidencia", "observacao"])
     ws.append(["japeri", "1.1", " atende ", "https://x", "ok"])
+    ws.append(["japeri", "1.2", "NAO_ATENDE", "Portal da Transparência", None])
+    ws["D3"].hyperlink = "https://japeri.exemplo/portal"  # link colado: mostra o título
     ws.append([None, None, None, None, None])  # linha vazia no fim
     caminho = tmp_path / "g.xlsx"
     wb.save(caminho)
-    assert ler_rotulos(caminho) == [Rotulo("japeri", "1.1", "ATENDE", "https://x", "ok")]
+    assert ler_rotulos(caminho) == [
+        Rotulo("japeri", "1.1", "ATENDE", "https://x", "ok"),
+        Rotulo("japeri", "1.2", "NAO_ATENDE", "https://japeri.exemplo/portal"),
+    ]
 
 
 def test_relatorio_tem_as_secoes_e_escapa_barras():

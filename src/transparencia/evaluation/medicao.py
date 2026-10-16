@@ -201,11 +201,14 @@ def medir(rotulos: list[Rotulo], previsoes: list[Previsao]) -> Medicao:
 
 
 def ler_rotulos(caminho: Path) -> list[Rotulo]:
-    ws = load_workbook(caminho, read_only=True)["rotulos"]
-    linhas = ws.iter_rows(values_only=True)
-    cabecalho = list(next(linhas))
+    ws = load_workbook(caminho)["rotulos"]  # sem read_only: ele não expõe hiperlinks
+    linhas = ws.iter_rows()
+    cabecalho = [c.value for c in next(linhas)]
     rotulos = []
-    for valores in linhas:
+    for celulas in linhas:
+        # Link colado no Excel: a célula MOSTRA o título da página e guarda a URL no
+        # hiperlink. Para a evidência, vale a URL.
+        valores = [c.hyperlink.target if c.hyperlink else c.value for c in celulas]
         d = dict(zip(cabecalho, valores, strict=False))
         if not d.get("entidade"):
             continue
