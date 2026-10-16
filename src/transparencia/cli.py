@@ -184,6 +184,39 @@ CORES_STATUS = {
 }
 
 
+def _criar_juiz(s, versao_regras: str):
+    """Monta o juiz de IA conforme LLM_PROVEDOR; None (só regras) se não houver como usar."""
+    from transparencia.evaluation.ia import JuizIA, ProvedorAnthropic, ProvedorOllama
+
+    if s.llm_provedor == "nenhum":
+        console.print("[yellow]LLM_PROVEDOR=nenhum: avaliando só com regras.[/yellow]")
+        return None
+    if s.llm_provedor == "anthropic":
+        if not s.anthropic_api_key:
+            console.print("[yellow]ANTHROPIC_API_KEY ausente: avaliando só com regras.[/yellow]")
+            return None
+        import anthropic
+
+        provedor = ProvedorAnthropic(anthropic.Anthropic(api_key=s.anthropic_api_key))
+    else:
+        provedor = ProvedorOllama(s.ollama_url)
+        instalados = provedor.modelos_instalados()
+        if instalados is None:
+            console.print(
+                f"[yellow]Ollama não respondeu em {s.ollama_url} (está aberto?): "
+                "avaliando só com regras.[/yellow]"
+            )
+            return None
+        if s.llm_model not in instalados:
+            console.print(
+                f"[yellow]Modelo {s.llm_model} não baixado (rode `ollama pull {s.llm_model}`): "
+                "avaliando só com regras.[/yellow]"
+            )
+            return None
+    console.print(f"IA: {provedor.nome} / {s.llm_model}")
+    return JuizIA(provedor, s.llm_model, s.data_dir / "cache_llm", versao_regras)
+
+
 @app.command("avaliar")
 def avaliar(
     slugs: Annotated[list[str] | None, typer.Argument(help="Slugs das entidades")] = None,
@@ -193,7 +226,9 @@ def avaliar(
     coleta: Annotated[
         int | None, typer.Option(help="Id da coleta (padrão: a mais recente concluída)")
     ] = None,
-    sem_ia: Annotated[bool, typer.Option(help="Só regras determinísticas (sem Claude)")] = False,
+    sem_ia: Annotated[
+        bool, typer.Option(help="Só regras determinísticas (ignora LLM_PROVEDOR)")
+    ] = False,
 ) -> None:
     """Avalia os critérios da PoC sobre a coleta mais recente (sem acessar o site)."""
     from sqlalchemy import select
@@ -205,20 +240,7 @@ def avaliar(
 
     s = get_settings()
     regras = carregar_regras(s.evaluation_rules_path)
-    juiz = None
-    if not sem_ia and s.anthropic_api_key:
-        import anthropic
-
-        from transparencia.evaluation.ia import JuizIA
-
-        juiz = JuizIA(
-            anthropic.Anthropic(api_key=s.anthropic_api_key),
-            s.llm_model,
-            s.data_dir / "cache_llm",
-            regras.versao,
-        )
-    elif not sem_ia:
-        console.print("[yellow]ANTHROPIC_API_KEY ausente: avaliando só com regras.[/yellow]")
+    juiz = None if sem_ia else _criar_juiz(s, regras.versao)
     hash_catalogo = carregar_catalogo(s.criteria_catalog_path).content_hash()
     with session_scope() as session:
         versao = session.scalar(

@@ -1,4 +1,8 @@
-"""IA na zona cinzenta (Claude Haiku), com citação verificada.
+"""IA na zona cinzenta, com citação verificada.
+
+Provedores (LLM_PROVEDOR no .env): "ollama" (modelo aberto local, gratuito, os
+dados não saem da máquina) ou "anthropic" (Claude, pago por token). O resto do
+fluxo é o mesmo para os dois: a garantia vem da validação, não do modelo.
 
 Quando entra: só depois das regras, e só em critérios de interpretação
 (15.2 "o e-SIC exige algo que dificulte o acesso?", 18.1 "identifica o
@@ -21,8 +25,9 @@ import hashlib
 import json
 import re
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Protocol
 
+import httpx
 from pydantic import BaseModel, Field
 
 from transparencia.collector.vocabulario import sem_acento
@@ -35,6 +40,7 @@ from transparencia.evaluation.veredito import Veredito, nao_avaliado
 VERSAO_PROMPT = "1"
 
 # US$ por milhão de tokens (entrada, saída). Fonte: tabela de preços da Anthropic.
+# Modelo fora da tabela (ex.: os locais do Ollama) tem custo zero.
 PRECOS = {
     "claude-haiku-5-5": (0.10, 0.50),
     "claude-sonnet-5-5": (2.00, 10.00),
@@ -112,6 +118,89 @@ def citacao_confere(citacao: str, pagina: PaginaSnapshot) -> bool:
     return len(c) >= 10 and c in _normalizar(pagina.texto)
 
 
+# ---------------------------------------------------------- provedores
+
+
+class Provedor(Protocol):
+    """O que o juiz precisa de um provedor: resposta validada + tokens (entrada, saída)."""
+
+    nome: str
+
+    def perguntar(
+        self, modelo: str, sistema: str, pergunta: str
+    ) -> tuple[RespostaIA, int, int]: ...
+
+
+class ProvedorAnthropic:
+    """Claude pela API da Anthropic (pago). Saída estruturada via messages.parse."""
+
+    nome = "anthropic"
+
+    def __init__(self, cliente):
+        self.cliente = cliente  # anthropic.Anthropic (ou um falso, nos testes)
+
+    def perguntar(self, modelo: str, sistema: str, pergunta: str) -> tuple[RespostaIA, int, int]:
+        resposta = self.cliente.messages.parse(
+            model=modelo,
+            max_tokens=2000,
+            system=sistema,
+            messages=[{"role": "user", "content": pergunta}],
+            output_format=RespostaIA,
+        )
+        if resposta.stop_reason == "refusal" or resposta.parsed_output is None:
+            raise RuntimeError(f"modelo não respondeu no formato esperado ({resposta.stop_reason})")
+        uso = resposta.usage
+        return resposta.parsed_output, uso.input_tokens, uso.output_tokens
+
+
+class ProvedorOllama:
+    """Modelo aberto rodando localmente no Ollama (gratuito; nada sai da máquina).
+
+    Usa a API nativa (POST /api/chat) passando o esquema JSON de RespostaIA em
+    "format": o Ollama restringe a geração a esse formato, e o Pydantic valida.
+    """
+
+    nome = "ollama"
+
+    def __init__(self, url: str = "http://localhost:11434", http: httpx.Client | None = None):
+        self.url = url.rstrip("/")
+        # Em CPU, ler ~2.500 tokens de trechos e responder leva 1-2 minutos.
+        self.http = http or httpx.Client(timeout=600)
+
+    def modelos_instalados(self) -> list[str] | None:
+        """Modelos baixados (`ollama list`), ou None se o Ollama não estiver rodando."""
+        try:
+            r = self.http.get(f"{self.url}/api/tags", timeout=5)
+            r.raise_for_status()
+        except httpx.HTTPError:
+            return None
+        return [m["name"] for m in r.json().get("models", [])]
+
+    def perguntar(self, modelo: str, sistema: str, pergunta: str) -> tuple[RespostaIA, int, int]:
+        r = self.http.post(
+            f"{self.url}/api/chat",
+            json={
+                "model": modelo,
+                "messages": [
+                    {"role": "system", "content": sistema},
+                    {"role": "user", "content": pergunta},
+                ],
+                "format": RespostaIA.model_json_schema(),
+                "stream": False,
+                "options": {
+                    "temperature": 0,  # mesma entrada -> mesma saída, na medida do possível
+                    # O contexto padrão do Ollama é curto e ele CORTA o excesso sem avisar;
+                    # rubrica + 6 trechos passam de 2.000 tokens.
+                    "num_ctx": 8192,
+                },
+            },
+        )
+        r.raise_for_status()
+        dados = r.json()
+        resposta = RespostaIA.model_validate_json(dados["message"]["content"])
+        return resposta, dados.get("prompt_eval_count", 0), dados.get("eval_count", 0)
+
+
 # --------------------------------------------------------------- juiz
 
 
@@ -120,8 +209,8 @@ class JuizIA:
 
     criterios = frozenset(TERMOS)
 
-    def __init__(self, cliente, modelo: str, pasta_cache: Path, versao_regras: str):
-        self.cliente = cliente  # anthropic.Anthropic (ou um falso, nos testes)
+    def __init__(self, provedor: Provedor, modelo: str, pasta_cache: Path, versao_regras: str):
+        self.provedor = provedor
         self.modelo = modelo
         self.pasta_cache = pasta_cache
         self.versao_regras = versao_regras
@@ -153,19 +242,12 @@ class JuizIA:
             f"Critério {codigo}: {descricao}\n\nRubrica:\n{rubrica}\n\n"
             f"Trechos das páginas coletadas:\n\n{blocos}"
         )
-        resposta = self.cliente.messages.parse(
-            model=self.modelo,
-            max_tokens=2000,
-            system=SISTEMA,
-            messages=[{"role": "user", "content": pergunta}],
-            output_format=RespostaIA,
+        resposta, tokens_entrada, tokens_saida = self.provedor.perguntar(
+            self.modelo, SISTEMA, pergunta
         )
         entrada, saida = PRECOS.get(self.modelo, (0.0, 0.0))
-        uso = resposta.usage
-        custo = (uso.input_tokens * entrada + uso.output_tokens * saida) / 1_000_000
-        if resposta.stop_reason == "refusal" or resposta.parsed_output is None:
-            raise RuntimeError(f"modelo não respondeu no formato esperado ({resposta.stop_reason})")
-        return resposta.parsed_output.model_dump(), custo
+        custo = (tokens_entrada * entrada + tokens_saida * saida) / 1_000_000
+        return resposta.model_dump(), custo
 
     def avaliar(
         self, codigo: str, regra: RegraCriterio, descricao: str, snap: Snapshot, da_regra: Veredito
@@ -197,6 +279,7 @@ class JuizIA:
         detalhes = {
             "regra": {"status": da_regra.status.value, "justificativa": da_regra.justificativa},
             "ia": dados,
+            "llm_provedor": self.provedor.nome,
             "trechos_enviados": len(trechos),
             "cache": custo == 0.0,
         }

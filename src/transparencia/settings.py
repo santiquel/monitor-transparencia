@@ -7,6 +7,7 @@ lugar para descobrir "de onde vem esta configuração?".
 
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -38,9 +39,12 @@ class Settings(BaseSettings):
         "MonitorTransparencia/0.1 (+https://github.com/santiquel/monitor-transparencia)"
     )
 
-    # IA (usada a partir da Fase 3)
+    # IA na zona cinzenta. "nenhum" = só regras; "ollama" = modelo local gratuito;
+    # "anthropic" = Claude (pago, precisa de ANTHROPIC_API_KEY).
+    llm_provedor: Literal["nenhum", "ollama", "anthropic"] = "nenhum"
+    llm_model: str = "qwen2.5:7b"
+    ollama_url: str = "http://localhost:11434"
     anthropic_api_key: str | None = None
-    llm_model: str = "claude-haiku-5-5"
 
 
 @lru_cache
