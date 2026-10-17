@@ -548,7 +548,7 @@ na dúvida, encaminha para revisão humana.
 
 **Escopo.** 19 dos 142 critérios do checklist têm regra nesta prova de conceito.
 
-Detalhes: `docs/05_avaliacao.md`.
+Detalhes: `docs/documentacao_tecnica.md`.
 """
     )
     medicoes = sorted((PROJECT_ROOT / "golden" / "medicoes").glob("*.md"))

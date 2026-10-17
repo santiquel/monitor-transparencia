@@ -325,7 +325,7 @@ def agendar(
     """Põe na fila uma coleta + avaliação por entidade (o worker executa).
 
     Para a rotina mensal, agende este comando no sistema (Agendador de Tarefas do
-    Windows ou cron): `transparencia agendar --todas`. Ver docs/06_api_dashboard.md.
+    Windows ou cron): `transparencia agendar --todas`. Ver README (Agendamento).
     """
     from sqlalchemy import select
 

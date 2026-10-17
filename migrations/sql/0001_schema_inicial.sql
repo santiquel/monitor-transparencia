@@ -3,7 +3,7 @@
 --
 -- SQL puro, executado pela migration Alembic 0001 e mantido em arquivo próprio
 -- para facilitar a leitura, a revisão e a execução direta no PostgreSQL.
--- Ver docs/02_postgres_explicado.md para entender cada conceito.
+-- Visão geral do modelo: docs/documentacao_tecnica.md, seção 2.
 --
 -- Convenções:
 --   * id SERIAL PRIMARY KEY  -> número inteiro gerado automaticamente

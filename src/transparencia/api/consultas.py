@@ -457,8 +457,9 @@ def listar_criterios(session: Session, so_poc: bool = False) -> list[e.Criterio]
 def fila_de_revisao(session: Session) -> list[e.ItemRevisao]:
     """Resultados marcados para revisão humana na avaliação mais recente de cada entidade.
 
-    É o produto principal hoje (docs/05_avaliacao.md §6): o sistema confirma o que
-    está conforme e entrega aqui, com evidência, o que um humano precisa decidir.
+    É o produto principal hoje (docs/documentacao_tecnica.md, seção 5.4): o
+    sistema confirma o que está conforme e entrega aqui, com evidência, o que um
+    humano precisa decidir.
     """
     itens = []
     for ent in session.scalars(select(Entity).where(Entity.ativo.is_(True)).order_by(Entity.nome)):

@@ -14,33 +14,154 @@ humana** o que não pode concluir com segurança e guarda **todo o histórico**.
 > Municípios: Rio de Janeiro, Duque de Caxias, Japeri, Itaboraí e Cachoeiras de
 > Macacu (+ Niterói e Maricá).
 
-> **Documentação técnica:** [docs/documentacao_tecnica.md](docs/documentacao_tecnica.md)
-> — problema, arquitetura, abordagem, tecnologias, metodologia de avaliação e de
-> pontuação, não aplicáveis, erros, atualização, limitações e evolução.
+**Documentação técnica:** [docs/documentacao_tecnica.md](docs/documentacao_tecnica.md)
+— problema, arquitetura, abordagem, tecnologias, metodologia de avaliação e de
+pontuação, critérios não aplicáveis, tratamento de erros, estratégia de
+atualização, limitações e evolução.
 
-## Início rápido
+## Pré-requisitos
 
-Pré-requisitos: Git, [uv](https://docs.astral.sh/uv/) e Docker. Passo a passo
-para Windows: [docs/01_setup_windows.md](docs/01_setup_windows.md).
+- **Git**, **[uv](https://docs.astral.sh/uv/)** (gerencia o Python 3.12 e as
+  dependências) e **Docker** (roda o PostgreSQL 16).
+- No Windows (PowerShell como administrador), por exemplo:
+
+  ```powershell
+  winget install -e --id Git.Git
+  winget install -e --id astral-sh.uv
+  wsl --install                      # pré-requisito do Docker Desktop; reinicie depois
+  winget install -e --id Docker.DockerDesktop
+  ```
+
+  Abra o Docker Desktop uma vez e aguarde "Engine running".
+
+## Instalação e primeira execução
+
+Na pasta do projeto (os comandos valem para PowerShell e para bash):
 
 ```bash
-cp .env.example .env              # PowerShell: Copy-Item .env.example .env
-docker compose up -d              # PostgreSQL 16
-uv sync                           # Python 3.12 + dependências
-uv run alembic upgrade head       # cria tabelas e views
-uv run transparencia seed         # carrega 142 critérios e 7 entidades
+cp .env.example .env                 # PowerShell: Copy-Item .env.example .env
+docker compose up -d                 # PostgreSQL 16 em segundo plano
+uv sync                              # Python 3.12 + dependências (versões fixas em uv.lock)
+uv run alembic upgrade head          # cria tabelas e views
+uv run transparencia seed            # carrega os 142 critérios e as 7 entidades
 uv run playwright install chromium   # navegador para portais em JavaScript (uma vez)
-uv run transparencia coletar japeri  # coleta site + portal (ou --todas)
-uv run transparencia avaliar japeri  # avalia os 19 critérios sobre a coleta (ou --todas)
-uv run transparencia golden medir    # mede contra os rótulos manuais (golden/)
-uv run transparencia api            # API em http://localhost:8000/docs
-uv run transparencia dashboard      # dashboard em http://localhost:8501
-uv run transparencia worker         # processa a fila (coletas pedidas/agendadas)
-uv run pytest                     # testes
 ```
 
-A IA é opcional: sem configurar nada, a avaliação roda só com regras. Para
-testar um modelo local e gratuito, veja o passo 11 do guia de setup (Ollama).
+Como conferir:
+
+- `docker compose ps` mostra `transparencia-db` como `Up (healthy)`.
+- `uv run alembic current` mostra a versão mais recente (`head`).
+- `uv run transparencia seed` informa 142 critérios e 7 entidades; rodar de novo
+  não duplica nada.
+- Porta 5432 ocupada? No `.env`, use `POSTGRES_PORT=5433` e ajuste a porta na
+  `DATABASE_URL`.
+
+## Coletar e avaliar
+
+```bash
+uv run transparencia coletar japeri     # visita site e portal, guarda os snapshots (ou --todas)
+uv run transparencia avaliar japeri     # avalia os 19 critérios sobre a coleta (ou --todas)
+```
+
+A coleta acessa os sites (2 a 3 minutos por entidade, com limite de taxa e
+respeito ao robots.txt) e guarda HTML, PDFs e screenshots em `data/`. A
+avaliação **não acessa a internet**: trabalha só sobre os snapshots e pode ser
+refeita a qualquer momento. `transparencia reprocessar` reavalia coletas antigas
+com as regras atuais.
+
+## API, dashboard e worker
+
+São três processos, cada um em um terminal:
+
+```bash
+uv run transparencia api          # API em http://localhost:8000 (documentação interativa em /docs)
+uv run transparencia dashboard    # dashboard em http://localhost:8501 (consome a API)
+uv run transparencia worker       # executa os pedidos de coleta da fila
+```
+
+No dashboard: visão geral (nota com faixa de incerteza e cobertura), página de
+cada entidade (critérios com evidências, histórico, categorias), **fila de
+revisão humana** e metodologia. Na revisão, a pessoa registra o veredito e/ou a
+URL correta do critério; o botão "Recoletar e reavaliar" põe um pedido na fila,
+que o worker executa usando a URL indicada como ponto de partida.
+
+## Agendamento mensal
+
+`transparencia agendar --todas` põe na fila uma coleta + avaliação por entidade.
+Basta o agendador do sistema chamá-lo, com um worker rodando (ou
+`worker --uma-vez` logo depois).
+
+Windows (Agendador de Tarefas), dia 1 de cada mês às 2h:
+
+```powershell
+schtasks /Create /TN "MonitorTransparencia" /SC MONTHLY /D 1 /ST 02:00 /TR "cmd /c cd /d \"C:\caminho\monitor-transparencia\" && uv run transparencia agendar --todas && uv run transparencia worker --uma-vez"
+```
+
+Linux (cron):
+
+```
+0 2 1 * *  cd /srv/monitor-transparencia && uv run transparencia agendar --todas
+```
+
+## IA opcional
+
+O padrão é `LLM_PROVEDOR=nenhum`: medida contra os rótulos manuais, a IA local
+não melhorou os resultados (documentação técnica, seção 5.3). Para reproduzir a
+medição com um modelo aberto, local e gratuito ([Ollama](https://ollama.com),
+~8 GB de RAM livres, sem placa de vídeo):
+
+```powershell
+winget install -e --id Ollama.Ollama
+ollama pull qwen2.5:7b
+```
+
+e, no `.env`: `LLM_PROVEDOR=ollama` e `LLM_MODEL=qwen2.5:7b`. Também é possível
+usar o Claude (`LLM_PROVEDOR=anthropic`, chave em `ANTHROPIC_API_KEY`).
+
+## Qualidade: rótulos manuais e medição
+
+`golden/golden_set.xlsx` tem 95 rótulos manuais (5 municípios × 19 critérios),
+feitos com a mesma rubrica da máquina (`config/evaluation_rules.yaml`).
+
+```bash
+uv run transparencia golden medir --nome minha-medicao
+```
+
+compara a avaliação mais recente de cada entidade com os rótulos e grava o
+relatório (cobertura, kappa, precisão/recall, acusações falsas, divergências)
+em `golden/medicoes/`. Os relatórios das rodadas já feitas estão lá.
+
+## Testes
+
+```bash
+uv run pytest                        # testes unitários (sem rede, sem banco)
+uv run ruff check . && uv run ruff format --check .
+```
+
+Os testes de integração precisam de um banco descartável:
+
+```powershell
+docker exec transparencia-db psql -U transparencia -c "CREATE DATABASE transparencia_test"
+$env:TEST_DATABASE_URL="postgresql+psycopg://transparencia:transparencia@localhost:5432/transparencia_test"
+uv run pytest
+```
+
+O CI (`.github/workflows/ci.yml`) roda lint e todos os testes, inclusive contra
+um PostgreSQL próprio, a cada push.
+
+## Comandos
+
+| Comando | O que faz |
+|---|---|
+| `transparencia catalogo gerar` / `resumo` | gera o catálogo a partir da planilha oficial / mostra o resumo |
+| `transparencia seed` | carrega catálogo e entidades no banco (idempotente) |
+| `transparencia coletar <slug>` / `--todas` | coleta site e portal |
+| `transparencia avaliar <slug>` / `--todas` | avalia a coleta mais recente |
+| `transparencia reprocessar` | reavalia coletas antigas com as regras atuais |
+| `transparencia golden modelo` / `medir` | gera a planilha de rótulos / mede contra ela |
+| `transparencia agendar --todas` | põe coletas na fila |
+| `transparencia worker` | processa a fila |
+| `transparencia api` / `dashboard` | sobe a API / o dashboard |
 
 ## Estrutura
 
@@ -49,7 +170,9 @@ config/
   criteria_catalog.yaml   catálogo de critérios (gerado a partir da planilha oficial)
   entities.yaml           entidades avaliadas (entrada do sistema)
   evaluation_rules.yaml   rubrica de cada critério da PoC ("como avaliar")
-docs/                     plano, decisões, guias e documentação técnica
+docs/
+  documentacao_tecnica.md      documentação técnica
+  referencia/                  checklist oficial (planilha de origem)
 golden/                   rótulos manuais (gabarito) e relatórios de medição
 migrations/               esquema do banco versionado (Alembic + SQL legível)
 src/transparencia/
@@ -61,26 +184,5 @@ src/transparencia/
   dashboard/              dashboard Streamlit (consome a API)
   fila.py                 fila de jobs no PostgreSQL (SKIP LOCKED) e worker
   cli.py                  comandos `transparencia ...`
-tests/                    testes (unitários + integração com PostgreSQL no CI)
+tests/                    testes (unitários + integração com PostgreSQL)
 ```
-
-## Documentação
-
-| Documento | Conteúdo |
-|---|---|
-| [00 — Plano e decisões](docs/00_plano_e_decisoes.md) | Arquitetura, critérios da PoC, uso de IA, pontuação, cronograma |
-| [01 — Setup no Windows](docs/01_setup_windows.md) | Do zero ao banco rodando |
-| [02 — O banco explicado](docs/02_postgres_explicado.md) | Modelo de dados, diagrama, views de histórico, decisões |
-| [03 — Reconhecimento dos portais](docs/03_reconhecimento_portais.md) | Heterogeneidade real dos 7 portais e implicações |
-| [04 — O coletor](docs/04_coletor.md) | Navegação focada, HTTP × navegador, cliques em menus JS, robots.txt, snapshots |
-| [05 — A avaliação](docs/05_avaliacao.md) | Rubrica, cascata regra → IA, pontuação, medição contra o golden set |
-| [06 — API, dashboard e revisão](docs/06_api_dashboard.md) | Rotas, dashboard, revisão humana (veredito + URL indicada), fila/worker, agendamento mensal |
-| [Documentação técnica](docs/documentacao_tecnica.md) | **Documentação técnica**: consolida os anteriores, com resultados medidos e viabilidade para 5.000 portais |
-
-## Status
-
-- [x] Fase 1 — Fundação: catálogo, banco, CI
-- [x] Fase 2 — Coleta
-- [x] Fase 3 — Avaliação (regras + IA), pontuação e medição (kappa 0,46; 0 acusações falsas)
-- [x] Fase 4 — API, dashboard, revisão humana, fila/worker e agendamento
-- [ ] Fase 5 — Documentação técnica final

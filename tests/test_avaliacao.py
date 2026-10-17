@@ -7,7 +7,7 @@ from transparencia.evaluation.golden import ENTIDADES_PADRAO, gerar_modelo
 from transparencia.evaluation.regras import carregar_regras
 from transparencia.settings import get_settings
 
-# Os 19 critérios da PoC, por nível de complexidade (docs/00_plano_e_decisoes.md §3)
+# Os 19 critérios da PoC, por nível de complexidade (docs/documentacao_tecnica.md, seção 3)
 CRITERIOS_POC = {
     *("1.1", "1.2", "1.3", "2.9"),  # existência simples
     *("16.2", "16.3", "16.4"),  # acessibilidade

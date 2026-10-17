@@ -1,6 +1,6 @@
 """Pontuação: transforma os vereditos dos critérios em notas explicáveis.
 
-Metodologia (docs/00_plano_e_decisoes.md §5):
+Metodologia (docs/documentacao_tecnica.md, seção 6):
 
     nota = Σ(peso × valor) / Σ(peso)      sobre os critérios APLICÁVEIS e AVALIADOS
 

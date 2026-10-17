@@ -7,7 +7,7 @@
 #   url_portal  Portal da Transparência; se ausente, o coletor tenta DESCOBRIR
 #               a partir do site (links com "transparência" no texto)
 #
-# Reconhecimento feito em 11/10/2026 (ver docs/03_reconhecimento_portais.md).
+# Reconhecimento feito em 11/10/2026.
 entidades:
   - slug: rio-de-janeiro
     nome: Prefeitura da Cidade do Rio de Janeiro

@@ -8,7 +8,7 @@ A API quase só LÊ. As duas únicas escritas são leves e não apagam nada:
 - PEDIR uma coleta (POST /entities/{slug}/jobs): só põe um job na fila; quem
   coleta é o worker (`transparencia worker`), fora da requisição HTTP.
 Na PoC não há autenticação; em produção, essas duas rotas exigiriam login e o
-revisor viria da identidade autenticada (docs/06_api_dashboard.md).
+revisor viria da identidade autenticada (docs/documentacao_tecnica.md, seção 10).
 """
 
 import mimetypes
@@ -32,7 +32,7 @@ app = FastAPI(
     description=(
         "Conformidade de portais de transparência municipais com o checklist da LAI/LRF. "
         "Cada resultado traz evidências (URL, trecho literal, seletor, snapshot) e todo o "
-        "histórico é preservado. Metodologia: docs/05_avaliacao.md."
+        "histórico é preservado. Metodologia: docs/documentacao_tecnica.md."
     ),
 )
 
