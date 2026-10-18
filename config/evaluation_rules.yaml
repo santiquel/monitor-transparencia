@@ -4,9 +4,10 @@
 # O catálogo (criteria_catalog.yaml) diz O QUE avaliar e vem da planilha oficial.
 # Este arquivo diz COMO avaliar, e é editado à mão. Para cada critério:
 #
-#   rubrica     o que conta como ATENDE / ATENDE_PARCIALMENTE / NAO_ATENDE.
-#               É a MESMA rubrica usada na rotulagem humana (golden set):
-#               humano e máquina julgam pela mesma régua.
+#   rubrica     régua de avaliação: o que conta como ATENDE /
+#               ATENDE_PARCIALMENTE / NAO_ATENDE. É a MESMA régua usada na
+#               rotulagem humana (golden set): humano e máquina julgam pelo
+#               mesmo padrão.
 #   onde_olhar  dica para quem rotula (e para quem audita uma avaliação).
 #
 # A versão entra em evaluation_runs.versao_regras: mudou a régua, muda a versão,
