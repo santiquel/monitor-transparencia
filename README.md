@@ -121,7 +121,8 @@ usar o Claude (`LLM_PROVEDOR=anthropic`, chave em `ANTHROPIC_API_KEY`).
 ## Qualidade: rótulos manuais e medição
 
 `golden/golden_set.xlsx` tem 95 rótulos manuais (5 municípios × 19 critérios),
-feitos com a mesma rubrica da máquina (`config/evaluation_rules.yaml`).
+feitos com a mesma régua de avaliação usada pela ferramenta
+(`config/evaluation_rules.yaml`).
 
 ```bash
 uv run transparencia golden medir --nome minha-medicao
@@ -169,7 +170,7 @@ um PostgreSQL próprio, a cada push.
 config/
   criteria_catalog.yaml   catálogo de critérios (gerado a partir da planilha oficial)
   entities.yaml           entidades avaliadas (entrada do sistema)
-  evaluation_rules.yaml   rubrica de cada critério da PoC ("como avaliar")
+  evaluation_rules.yaml   régua de avaliação de cada critério ("como avaliar")
 docs/
   documentacao_tecnica.md      documentação técnica
   referencia/                  checklist oficial (planilha de origem)
