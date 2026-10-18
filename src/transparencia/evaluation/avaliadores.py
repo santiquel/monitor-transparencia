@@ -5,7 +5,7 @@ evidências. As decisões seguem a rubrica de `config/evaluation_rules.yaml`.
 
 Princípios:
 - **Ausência exige busca suficiente.** "Não encontrei" só vira NAO_ATENDE se a
-  coleta não parou por orçamento; senão é NAO_AVALIADO (ver `_ausencia`).
+  coleta não atingiu o limite de páginas; senão é NAO_AVALIADO (ver `_ausencia`).
 - **Página certa, dado invisível = zona cinzenta.** Ex.: a página de despesas
   existe, mas os dados só aparecem depois de preencher um formulário. Isso não
   prova que o portal falha: vira NAO_AVALIADO com revisão humana (ou IA, 3.3).
@@ -52,16 +52,16 @@ def _paginas_iniciais(snap: Snapshot) -> list[PaginaSnapshot]:
 
 
 def _ausencia(snap: Snapshot, oque: str, procurou_em: list[PaginaSnapshot] | None = None):
-    """'Não encontrei X': conclusivo só se a coleta não parou por orçamento."""
+    """'Não encontrei X': conclusivo só se a coleta não atingiu o limite de páginas."""
     procurou_em = procurou_em or _paginas_iniciais(snap)
     evidencias = [
         evidencia(p, "metadado", f"Procurado nesta página: {oque}") for p in procurou_em[:3]
     ]
     total = len(snap.html)
-    if snap.orcamento_esgotado:
+    if snap.limite_atingido:
         return nao_avaliado(
-            f"{oque} não encontrado nas {total} páginas coletadas, mas a coleta parou "
-            "por orçamento: a ausência não está comprovada.",
+            f"{oque} não encontrado nas {total} páginas coletadas, mas a coleta atingiu "
+            "o limite de páginas: a ausência não está comprovada.",
             evidencias,
             paginas_analisadas=total,
         )

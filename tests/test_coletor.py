@@ -2,7 +2,7 @@
 
 O MockTransport substitui a rede: cada requisição do httpx chama a função
 `responder`, que devolve o HTML que quisermos. Assim testamos a navegação
-inteira (descoberta do portal, robots.txt, prioridades, orçamento) em milissegundos.
+inteira (descoberta do portal, robots.txt, prioridades, limites) em milissegundos.
 """
 
 import httpx
@@ -285,7 +285,7 @@ def test_cliques_so_na_pagina_inicial_do_portal(tmp_path):
     assert por_url[PORTAL + "#/consulta/1"].texto_link == "Servidores"
 
 
-def test_orcamento_de_paginas(tmp_path):
+def test_limite_de_paginas(tmp_path):
     coletor, _ = _coletor(tmp_path, max_paginas=3, max_documentos=0)
     r = coletor.coletar(SITE, PORTAL)
     requisitadas = [p for p in r.paginas if p.fetched_at is not None]
@@ -294,7 +294,7 @@ def test_orcamento_de_paginas(tmp_path):
 
 
 def test_url_indicada_na_revisao_entra_como_semente_com_tema(tmp_path):
-    """A página que um revisor indicou é visitada mesmo com orçamento apertado e
+    """A página que um revisor indicou é visitada mesmo com limite de páginas apertado e
     carrega o tema do critério no texto do link (não depende do título)."""
     from transparencia.collector.vocabulario import MARCA_INDICADA, texto_link_indicado
 

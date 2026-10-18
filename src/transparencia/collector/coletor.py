@@ -1,4 +1,4 @@
-"""Núcleo do coletor: fila com prioridade, regras de navegação e orçamento.
+"""Núcleo do coletor: fila com prioridade, regras de navegação e limites.
 
 Este módulo não conhece o banco de dados: devolve `PaginaColetada` (e avisa a
 cada página via `ao_coletar`). Quem grava no banco é `execucao.py`. Essa
@@ -11,7 +11,7 @@ Regras de navegação (o que seguir a partir de uma página):
 3. Links para outro domínio (fornecedor, Fala.BR...): só se o texto/URL tiver
    termo do vocabulário, ou se for <iframe>, com no máximo N saltos externos.
 4. Documentos (PDF, CSV...): só se o link ou a página de origem forem temáticos.
-5. Orçamento separado para páginas e documentos.
+5. Limites separados para páginas e documentos.
 """
 
 import heapq
@@ -38,7 +38,7 @@ PRIORIDADE_SEMENTE = 1000
 PRIORIDADE_DESCOBERTA = 500
 ATRASO_MAXIMO_S = 10.0  # teto para o Crawl-delay pedido pelo site
 
-# Redes sociais, mapas e vídeos: nunca são o portal e só gastariam orçamento.
+# Redes sociais, mapas e vídeos: nunca são o portal e só gastariam o limite de páginas.
 HOSTS_IGNORADOS = (
     "facebook.com",
     "instagram.com",
@@ -167,7 +167,7 @@ class Coletor:
                 return False
         if documento:
             # Só documentos que algum critério usa: relatórios fiscais e dados abertos.
-            # Na 1ª coleta completa, o orçamento de PDFs foi gasto com "Atos de designação
+            # Na 1ª coleta completa, o limite de PDFs foi gasto com "Atos de designação
             # de fiscal de contrato" (tema licitações) e nenhum RGF foi baixado.
             return bool((temas | pai.temas) & TEMAS_DE_DOCUMENTO)
         # Links genéricos só a partir das sementes ou de páginas temáticas.
@@ -334,13 +334,13 @@ class Coletor:
     # ---------------------------------------------------------------- execução
 
     def _limite_paginas(self, ramo: str, url_portal: str | None) -> int:
-        """Orçamento de páginas por ramo.
+        """Limite de páginas por ramo.
 
         O portal costuma ter muito mais links temáticos que o site e, numa fila única,
         consumiria tudo. Mas critérios como 1.2, 2.9, 16.4 e 18.1 olham o SITE: ele tem
-        uma cota reservada. Sem portal conhecido, o site pode usar o orçamento inteiro.
+        uma cota reservada. Sem portal conhecido, o site pode usar o limite inteiro.
         """
-        # No máximo 1/4 do total, para orçamentos pequenos não zerarem o portal.
+        # No máximo 1/4 do total, para limites pequenos não zerarem o portal.
         cota_site = min(self.params.max_paginas_site, max(1, self.params.max_paginas // 4))
         tem_portal = url_portal is not None or self._resultado.portal_descoberto is not None
         if ramo == "site":
@@ -354,7 +354,7 @@ class Coletor:
         indicadas: list[tuple[str, str]] = (),
     ) -> ResultadoColeta:
         """`indicadas`: (url, texto_link) apontadas por revisores humanos. Entram como
-        sementes, com o texto marcado (tema do critério), e contam no orçamento do
+        sementes, com o texto marcado (tema do critério), e contam no limite de páginas do
         ramo do domínio delas (portal, se não forem do site oficial)."""
         self._resultado = ResultadoColeta()
         self._fila: list = []
@@ -371,7 +371,7 @@ class Coletor:
             if url and (normalizada := normalizar(url)):
                 self._enfileirar(_Alvo(normalizada, 0, PRIORIDADE_SEMENTE, papel=papel, ramo=papel))
         # Mesmo HOST do site oficial = ramo do site; o resto (portal, sistemas de
-        # fornecedores) usa o orçamento do portal. Comparar o domínio-base erraria:
+        # fornecedores) usa o limite do portal. Comparar o domínio-base erraria:
         # site e portal costumam compartilhá-lo (www.x.rj.gov.br, transparencia.x.rj.gov.br).
         host_site = host(url_site)
         for url, texto in indicadas:
@@ -393,7 +393,7 @@ class Coletor:
 
             pagina = self._visitar(alvo)
             if pagina.fetched_at is None:
-                pass  # bloqueada antes de qualquer requisição: não gasta orçamento
+                pass  # bloqueada antes de qualquer requisição: não conta no limite
             elif "html" in (pagina.content_type or "html"):
                 paginas[alvo.ramo] += 1
             else:

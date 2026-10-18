@@ -1,7 +1,7 @@
 """Vocabulário que orienta a navegação (coleta focada).
 
 Cada tema corresponde a um grupo de critérios da PoC. Um link cujo texto ou URL
-contém termos de um tema é visitado antes dos demais. Assim, com um orçamento
+contém termos de um tema é visitado antes dos demais. Assim, com um limite
 de ~60 páginas, o coletor chega às páginas que a avaliação vai precisar.
 
 Os termos são comparados sem acento e em minúsculas, como palavras inteiras

@@ -124,8 +124,8 @@ def coletar(
     todas: Annotated[
         bool, typer.Option("--todas", help="Coleta todas as entidades ativas")
     ] = False,
-    max_paginas: Annotated[int, typer.Option(help="Orçamento de páginas HTML")] = 60,
-    max_documentos: Annotated[int, typer.Option(help="Orçamento de PDFs/planilhas")] = 25,
+    max_paginas: Annotated[int, typer.Option(help="Limite de páginas HTML")] = 60,
+    max_documentos: Annotated[int, typer.Option(help="Limite de PDFs/planilhas")] = 25,
     profundidade: Annotated[int, typer.Option(help="Cliques a partir das sementes")] = 3,
     sem_navegador: Annotated[bool, typer.Option(help="Só HTTP simples (sem Playwright)")] = False,
 ) -> None:

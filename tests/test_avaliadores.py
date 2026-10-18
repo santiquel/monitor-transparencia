@@ -208,10 +208,10 @@ def test_pagina_certa_sem_dados_e_zona_cinzenta(m):
     assert v.status == S.NAO_AVALIADO and v.revisao_humana
 
 
-# ---------------------------------------------------- ausência e orçamento
+# ---------------------------------------------------- ausência e limite de páginas
 
 
-def test_ausencia_so_conclui_se_a_coleta_nao_parou_por_orcamento(m):
+def test_ausencia_so_conclui_se_a_coleta_nao_atingiu_o_limite(m):
     m.pagina(SITE, TEXTO, 0).pagina(PORTAL, TEXTO, 0)
     assert _avaliar("7.1", m.snapshot(max_paginas=60)).status == S.NAO_ATENDE
     assert _avaliar("7.1", m.snapshot(max_paginas=2)).status == S.NAO_AVALIADO

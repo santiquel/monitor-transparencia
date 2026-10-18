@@ -103,8 +103,8 @@ class Snapshot:
         return [p for p in self.ok if p.eh_html]
 
     @property
-    def orcamento_esgotado(self) -> bool:
-        """A coleta parou por orçamento (e não por falta de links)?
+    def limite_atingido(self) -> bool:
+        """A coleta parou por atingir o limite de páginas (e não por falta de links)?
 
         Importa para concluir AUSÊNCIA: se o coletor parou antes de ver tudo,
         "não encontrei" não prova "não existe".
