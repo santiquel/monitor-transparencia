@@ -51,10 +51,10 @@ como "o e-SIC exige algo que dificulte o acesso?".
 O problema, portanto, é construir uma ferramenta que diga, para cada entidade e
 cada critério, se a exigência é cumprida, **mostrando a prova** dessa conclusão,
 repetindo a verificação periodicamente e mantendo um custo viável para milhares
-de portais. Um requisito orientou todas as decisões: para um órgão de controle,
-afirmar que um portal descumpre a lei quando ele cumpre (uma **acusação falsa**)
-é mais grave do que admitir que não foi possível verificar. A ferramenta foi
-desenhada para não acusar sem prova.
+de portais. A ferramenta foi desenhada para não acusar sem prova, dado que,
+para um órgão de controle, afirmar que um portal descumpre a lei quando ele
+cumpre (uma **acusação falsa**) é mais grave do que admitir que não foi
+possível verificar.
 
 ## 2. Arquitetura proposta
 
@@ -254,7 +254,7 @@ desatualizados" só se tornam "não atende" quando a própria página declara es
 informação; caso contrário, o critério é encaminhado à revisão. O terceiro é
 que **página certa com dado invisível não é descumprimento**: quando a página
 de consulta existe, mas os dados só aparecem após o preenchimento de um
-formulário, o resultado é "não avaliado", nunca "não atende".
+formulário, o resultado é "não avaliado", em vez de "não atende".
 
 Cada regra também declara a **confiança** que tem no próprio sinal, numa escala
 de 0 a 1. Esse valor não é calculado estatisticamente: é atribuído conforme a
@@ -306,13 +306,14 @@ cumprimento.
 
 A revisão humana também se mostrou eficaz na prática. Em Cachoeiras de Macacu,
 a página que a coleta havia tomado como "despesas" era, na verdade, a folha de
-pagamento. Ao indicar o endereço correto da consulta de despesas
-orçamentárias, o revisor permitiu que a coleta seguinte avaliasse o critério
-4.1 na página certa e encontrasse, a partir dela, os botões de exportação do
-critério 4.5, que passou a "atende". A cobertura dessa entidade subiu de 74%
-para 84%. Na mesma revisão, identifiquei que o menu principal de sites feitos
-na plataforma Wix era interpretado como menu suspenso; a regra foi corrigida de
-forma geral, e a medição confirmou a melhora sem alterar nenhum outro resultado.
+pagamento. Ao indicar o endereço correto da consulta de despesas orçamentárias,
+permiti que a coleta seguinte chegasse à página certa e que o critério 4.1
+fosse avaliado sobre ela. A partir dessa página, a coleta encontrou também os
+botões de exportação exigidos pelo critério 4.5, que passou a ser avaliado como
+"atende". A cobertura dessa entidade subiu de 74% para 84%. Na mesma revisão,
+identifiquei que o menu principal de sites feitos na plataforma Wix era
+interpretado como menu suspenso; corrigi a regra de forma geral, e a medição
+confirmou a melhora sem alterar nenhum outro resultado.
 
 ## 6. Metodologia de cálculo da pontuação
 
@@ -321,10 +322,10 @@ nem todo critério tem o mesmo peso legal: adotei os pesos da metodologia do
 Programa Nacional de Transparência Pública (PNTP), que distingue critérios
 essenciais, obrigatórios e recomendados. Segundo, um critério que a ferramenta
 não conseguiu avaliar não pode ser contado nem como cumprido nem como
-descumprido, sob pena de premiar ou punir a entidade por uma limitação da
-ferramenta. Terceiro, a nota precisa informar o quanto é firme: uma nota
-calculada sobre poucos critérios avaliados merece menos confiança do que uma
-nota calculada sobre quase todos. Daí a regra:
+descumprido, sob pena de beneficiar ou prejudicar a entidade por uma limitação da
+ferramenta. Terceiro, a nota deve vir acompanhada de uma indicação da sua
+precisão: uma nota calculada sobre poucos critérios avaliados é menos
+representativa do que uma nota calculada sobre quase todos. Daí a regra:
 
 ```
 nota = Σ (peso × valor) / Σ (peso)       sobre os critérios aplicáveis e avaliados

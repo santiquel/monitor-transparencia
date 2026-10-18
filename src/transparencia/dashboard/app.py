@@ -6,7 +6,7 @@ O dashboard só fala com a API (API_URL no .env); nunca acessa o banco direto.
 Escolhas de visualização:
 - A nota nunca aparece sozinha: vem com a FAIXA (mín–máx, se os não avaliados
   fossem todos "não atende" ou todos "atende") e a COBERTURA. Uma nota 96 com
-  47% de cobertura é muito menos firme que uma 90 com 85%.
+  47% de cobertura é muito menos precisa que uma 90 com 85%.
 - Status usam cores de status (verde/âmbar/vermelho/cinza) SEMPRE com ícone e
   rótulo: a cor nunca carrega o significado sozinha.
 - Todo gráfico tem tooltip e uma tabela equivalente ao lado.
@@ -93,7 +93,7 @@ def visao_geral() -> None:
     st.caption(
         "O ponto é a nota sobre os critérios avaliados; a linha cinza vai do mínimo "
         "(não avaliados contados como 'não atende') ao máximo (contados como 'atende'). "
-        "Linha longa = cobertura baixa = nota pouco firme."
+        "Linha longa = cobertura baixa = nota menos precisa."
     )
     if not avaliadas.empty:
         base = alt.Chart(avaliadas).encode(
